@@ -27,8 +27,14 @@ impl CompletionPort {
         }
     }
 
-    pub fn add<T: AsRawHandle>(&self, token: usize, t: &T) -> io::Result<()> {
+    pub fn add_handle<T: AsRawHandle>(&self, token: usize,
+                                      t: &T) -> io::Result<()> {
         self._add(token, t.as_raw_handle())
+    }
+
+    pub fn add_socket<T: AsRawSocket>(&self, token: usize,
+                                      t: &T) -> io::Result<()> {
+        self._add(token, t.as_raw_socket() as HANDLE)
     }
 
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
