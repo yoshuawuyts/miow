@@ -7,14 +7,25 @@ use handle::Handle;
 use winapi::*;
 use kernel32::*;
 
+/// A handle to an Windows I/O Completion Port.
 pub struct CompletionPort {
     handle: Handle,
 }
 
+/// A status message received from an I/O completion port.
+///
+/// These statuses can be created via the `new` or `empty` constructors and then
+/// provided to a completion port, or they are read out of a completion port.
+/// The fields of each status are read through its accessor methods.
 #[derive(Clone, Copy, Debug)]
 pub struct CompletionStatus(OVERLAPPED_ENTRY);
 
 impl CompletionPort {
+    /// Creates a new I/O completion port with the specified concurrency value.
+    ///
+    /// The number of threads given corresponds to the level of concurrency
+    /// allowed for threads associated with this port. Consult the Windows
+    /// documentation for more information about this value.
     pub fn new(threads: u32) -> io::Result<CompletionPort> {
         let ret = unsafe {
             CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0 as *mut _,
@@ -27,11 +38,29 @@ impl CompletionPort {
         }
     }
 
+    /// Associates a new `HANDLE` to this I/O completion port.
+    ///
+    /// This function will associate the given handle to this port with the
+    /// given `token` to be returned in status messages whenever it receives a
+    /// notification.
+    ///
+    /// Any object which is convertible to a `HANDLE` via the `AsRawHandle`
+    /// trait can be provided to this function, such as `std::fs::File` and
+    /// friends.
     pub fn add_handle<T: AsRawHandle>(&self, token: usize,
                                       t: &T) -> io::Result<()> {
         self._add(token, t.as_raw_handle())
     }
 
+    /// Associates a new `SOCKET` to this I/O completion port.
+    ///
+    /// This function will associate the given socket to this port with the
+    /// given `token` to be returned in status messages whenever it receives a
+    /// notification.
+    ///
+    /// Any object which is convertible to a `SOCKET` via the `AsRawSocket`
+    /// trait can be provided to this function, such as `std::net::TcpStream`
+    /// and friends.
     pub fn add_socket<T: AsRawSocket>(&self, token: usize,
                                       t: &T) -> io::Result<()> {
         self._add(token, t.as_raw_socket() as HANDLE)
@@ -50,6 +79,19 @@ impl CompletionPort {
         }
     }
 
+    /// Dequeue a completion status from this I/O completion port.
+    ///
+    /// This function will associate the calling thread with this completion
+    /// port and then wait for a status message to become available. The precise
+    /// semantics on when this function returns depends on the concurrency value
+    /// specified when the port was created.
+    ///
+    /// A timeout can optionally be specified to this function. If `None` is
+    /// provided this function will not time out, and otherwise it will time out
+    /// after the specified duration has passed.
+    ///
+    /// On success this will return the status message which was dequeued from
+    /// this completion port.
     pub fn get(&self, timeout: Option<Duration>) -> io::Result<CompletionStatus> {
         let mut bytes = 0;
         let mut token = 0;
@@ -72,6 +114,15 @@ impl CompletionPort {
         })
     }
 
+    /// Dequeues a number of completion statuses from this I/O completion port.
+    ///
+    /// This function is the same as `get` except that it may return more than
+    /// one status. A buffer of "zero" statuses is provided (the contents are
+    /// not read) and then on success this function will return a sub-slice of
+    /// statuses which represent those which were dequeued from this port. This
+    /// function does not wait to fill up the entire list of statuses provided.
+    ///
+    /// Like with `get`, a timeout may be specified for this operation.
     pub fn get_many<'a>(&self,
                         list: &'a mut [CompletionStatus],
                         timeout: Option<Duration>)
@@ -95,6 +146,11 @@ impl CompletionPort {
         }
     }
 
+    /// Posts a new completion status onto this I/O completion port.
+    ///
+    /// This function will post the given status, with custom parameters, to the
+    /// port. Threads blocked in `get` or `get_many` will eventually receive
+    /// this status.
     pub fn post(&self, status: CompletionStatus) -> io::Result<()> {
         let ret = unsafe {
             PostQueuedCompletionStatus(self.handle.raw(),
@@ -126,6 +182,11 @@ impl IntoRawHandle for CompletionPort {
 }
 
 impl CompletionStatus {
+    /// Creates a new completion status with the provided parameters.
+    ///
+    /// This function is useful when creating a status to send to a port with
+    /// the `post` method. The parameters are opaquely passed through and not
+    /// interpreted by the system at all.
     pub fn new(bytes: u32, token: usize, overlapped: *mut OVERLAPPED)
                -> CompletionStatus {
         CompletionStatus(OVERLAPPED_ENTRY {
@@ -136,18 +197,31 @@ impl CompletionStatus {
         })
     }
 
+    /// Creates a new "zero" completion status.
+    ///
+    /// This function is useful when creating a stack buffer or vector of
+    /// completion statuses to be passed to the `get_many` function.
     pub fn zero() -> CompletionStatus {
         CompletionStatus::new(0, 0, 0 as *mut _)
     }
 
+    /// Returns the number of bytes that were transferred for the I/O operation
+    /// associated with this completion status.
     pub fn bytes_transferred(&self) -> u32 {
         self.0.dwNumberOfBytesTransferred
     }
 
+    /// Returns the completion key value associated with the file handle whose
+    /// I/O operation has completed.
+    ///
+    /// A completion key is a per-handle key that is specified when it is added
+    /// to an I/O completion port via `add_handle` or `add_socket`.
     pub fn token(&self) -> usize {
         self.0.lpCompletionKey as usize
     }
 
+    /// Returns a pointer to the `OVERLAPPED` structure that was specified when
+    /// the I/O operation was started.
     pub fn overlapped(&self) -> *mut OVERLAPPED {
         self.0.lpOverlapped
     }
@@ -160,6 +234,12 @@ mod tests {
     use winapi::*;
 
     use {CompletionPort, CompletionStatus};
+
+    #[test]
+    fn is_send_sync() {
+        fn is_send_sync<T: Send + Sync>() {}
+        is_send_sync::<CompletionPort>();
+    }
 
     #[test]
     fn token_right_size() {
