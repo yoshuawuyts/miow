@@ -2,6 +2,15 @@
 name = "wio"
 version = "0.1.0"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+keywords = ["iocp", "windows", "io", "overlapped"]
+repository = "https://github.com/alexcrichton/wio"
+homepage = "https://github.com/alexcrichton/wio"
+description = """
+A zero overhead I/O library for Windows, focusing on IOCP and Async I/O
+abstractions.
+"""
 
 [dependencies]
 winapi = "0.2"
