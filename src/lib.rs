@@ -1,4 +1,4 @@
-//! dox
+//! A zero overhead Windows I/O library
 
 #![cfg_attr(feature = "unstable", feature(into_raw_os))]
 #![cfg(windows)]
