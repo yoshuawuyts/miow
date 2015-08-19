@@ -5,20 +5,28 @@
 #![deny(missing_docs)]
 
 extern crate kernel32;
+extern crate libc;
+extern crate net2;
 extern crate winapi;
 extern crate ws2_32;
-extern crate libc;
 
 use std::time::Duration;
 use std::io;
 use winapi::*;
+
+macro_rules! t {
+    ($e:expr) => (match $e {
+        Ok(e) => e,
+        Err(e) => panic!("{} failed with {:?}", stringify!($e), e),
+    })
+}
 
 mod handle;
 mod iocp;
 mod net;
 
 pub use iocp::{CompletionPort, CompletionStatus};
-pub use net::{TcpStreamExt, UdpSocketExt, SocketAddrBuf};
+pub use net::{TcpStreamExt, UdpSocketExt, SocketAddrBuf, TcpBuilderExt};
 
 fn dur2timeout(dur: Duration) -> DWORD {
     // Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the

@@ -4,6 +4,8 @@ use std::net::{TcpStream, UdpSocket, SocketAddr};
 use std::net::{SocketAddrV4, Ipv4Addr, SocketAddrV6, Ipv6Addr};
 use std::os::windows::prelude::*;
 
+use libc::{sockaddr, sockaddr_in, sockaddr_in6};
+use net2::TcpBuilder;
 use winapi::*;
 use ws2_32::*;
 
@@ -23,16 +25,31 @@ doit! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 // fn hton<I: NetInt>(i: I) -> I { i.to_be() }
 fn ntoh<I: NetInt>(i: I) -> I { I::from_be(i) }
 
+fn last_err() -> io::Result<bool> {
+    let err = unsafe { WSAGetLastError() };
+    if err == WSA_IO_PENDING as i32 {
+        Ok(false)
+    } else {
+        Err(io::Error::from_raw_os_error(err))
+    }
+}
+
 fn cvt(i: c_int) -> io::Result<bool> {
     if i == SOCKET_ERROR {
-        let err = unsafe { WSAGetLastError() };
-        if err == WSA_IO_PENDING as i32 {
-            Ok(false)
-        } else {
-            Err(io::Error::from_raw_os_error(err))
-        }
+        last_err()
     } else {
         Ok(true)
+    }
+}
+
+fn socket_addr_to_ptrs(addr: &SocketAddr) -> (*const sockaddr, c_int) {
+    match *addr {
+        SocketAddr::V4(ref a) => {
+            (a as *const _ as *const _, mem::size_of::<sockaddr_in>() as c_int)
+        }
+        SocketAddr::V6(ref a) => {
+            (a as *const _ as *const _, mem::size_of::<sockaddr_in6>() as c_int)
+        }
     }
 }
 
@@ -227,25 +244,14 @@ impl UdpSocketExt for UdpSocket {
                                  addr: &SocketAddr,
                                  overlapped: &mut WSAOVERLAPPED)
                                  -> io::Result<bool> {
-        use libc::{sockaddr_in, sockaddr_in6};
-
-        let (addr_buf, addr_len) = match *addr {
-            SocketAddr::V4(ref a) => {
-                (a as *const _ as *mut _, mem::size_of::<sockaddr_in>())
-            }
-            SocketAddr::V6(ref a) => {
-                (a as *const _ as *mut _, mem::size_of::<sockaddr_in6>())
-            }
-        };
-
+        let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
         let mut buf = WSABUF {
             len: buf.len() as u_long,
             buf: buf.as_ptr() as *mut _,
         };
         let r = WSASendTo(self.as_raw_socket(), &mut buf, 1,
                           0 as *mut _, 0,
-                          addr_buf,
-                          addr_len as c_int,
+                          addr_buf as *const _, addr_len,
                           overlapped, None);
         cvt(r)
     }
@@ -312,6 +318,89 @@ impl SocketAddrBuf {
     }
 }
 
+/// Additional methods for the `TcpBuilder` type in the `net2` library.
+pub trait TcpBuilderExt {
+    /// Attempt to consume the internal socket in this builder by executing an
+    /// overlapped connect operation.
+    ///
+    /// This function will issue a connect operation to the address specified on
+    /// the underlying socket, flagging it as an overlapped operation which will
+    /// complete asynchronously. If successful this function will return the
+    /// corresponding TCP stream.
+    ///
+    /// This function will also return whether the function immediately
+    /// succeeded or not. If `false` is returned then the I/O operation is still
+    /// pending and will complete at a later date.
+    ///
+    /// Note that to succeed this requires that the underlying socket has
+    /// previously been bound via a call to `bind` to a local address.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe because the kernel requires that the
+    /// `overlapped` pointer is valid until the end of the I/O operation. The
+    /// kernel also requires that `overlapped` is unique for this I/O operation
+    /// and is not in use for any other I/O.
+    ///
+    /// To safely use this function callers must ensure that this pointer is
+    /// valid until the I/O operation is completed, typically via completion
+    /// ports and waiting to receive the completion notification on the port.
+    unsafe fn connect_overlapped(&self, addr: &SocketAddr,
+                                 overlapped: &mut WSAOVERLAPPED)
+                                 -> io::Result<(TcpStream, bool)>;
+}
+
+static WSAID_CONNECTEX: GUID = GUID {
+    Data1: 0x25a207b9,
+    Data2: 0xddf3,
+    Data3: 0x4660,
+    Data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
+};
+
+type ConnectEx = unsafe extern "system" fn(SOCKET, *const sockaddr, c_int, PVOID,
+                                           DWORD, LPDWORD, LPOVERLAPPED) -> BOOL;
+
+impl TcpBuilderExt for TcpBuilder {
+    unsafe fn connect_overlapped(&self, addr: &SocketAddr,
+                                 overlapped: &mut WSAOVERLAPPED)
+                                 -> io::Result<(TcpStream, bool)> {
+        let ptr = try!(get_extension(self.as_raw_socket(), &WSAID_CONNECTEX));
+        assert!(ptr != 0);
+        let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
+
+        let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
+        let r = connect_ex(self.as_raw_socket(), addr_buf, addr_len,
+                           0 as *mut _, 0, 0 as *mut _, overlapped);
+        let succeeded = if r == TRUE {
+            true
+        } else {
+            try!(last_err())
+        };
+        let stream = try!(self.to_tcp_stream());
+        Ok((stream, succeeded))
+    }
+}
+
+fn get_extension(socket: SOCKET, guid: &GUID) -> io::Result<usize> {
+    let mut ret = 0 as usize;
+    let mut bytes = 0;
+    let r = unsafe {
+        WSAIoctl(socket, SIO_GET_EXTENSION_FUNCTION_POINTER,
+                 guid as *const _ as *mut _,
+                 mem::size_of_val(guid) as DWORD,
+                 &mut ret as *mut _ as *mut _,
+                 mem::size_of_val(&ret) as DWORD,
+                 &mut bytes,
+                 0 as *mut _,
+                 None)
+    };
+    cvt(r).map(|_| {
+        debug_assert_eq!(bytes as usize, mem::size_of_val(&ret));
+        ret
+    })
+
+}
+
 #[cfg(test)]
 mod tests {
     use std::net::{TcpListener, UdpSocket, TcpStream, SocketAddr};
@@ -320,6 +409,8 @@ mod tests {
     use winapi::*;
 
     use {CompletionPort, TcpStreamExt, UdpSocketExt, SocketAddrBuf};
+    use {TcpBuilderExt};
+    use net2::TcpBuilder;
 
     fn overlapped() -> WSAOVERLAPPED {
         WSAOVERLAPPED {
@@ -332,129 +423,159 @@ mod tests {
     }
 
     fn each_ip(f: &mut FnMut(SocketAddr)) {
-        f("127.0.0.1:0".parse().unwrap());
-        f("[::1]:0".parse().unwrap());
+        f(t!("127.0.0.1:0".parse()));
+        f(t!("[::1]:0".parse()));
     }
 
     #[test]
     fn tcp_read() {
         each_ip(&mut |addr| {
-            let l = TcpListener::bind(addr).unwrap();
-            let addr = l.local_addr().unwrap();
+            let l = t!(TcpListener::bind(addr));
+            let addr = t!(l.local_addr());
             let t = thread::spawn(move || {
-                let mut a = l.accept().unwrap().0;
-                a.write_all(&[1, 2, 3]).unwrap();
+                let mut a = t!(l.accept()).0;
+                t!(a.write_all(&[1, 2, 3]));
             });
 
-            let cp = CompletionPort::new(1).unwrap();
-            let s = TcpStream::connect(addr).unwrap();
-            cp.add_socket(1, &s).unwrap();
+            let cp = t!(CompletionPort::new(1));
+            let s = t!(TcpStream::connect(addr));
+            t!(cp.add_socket(1, &s));
 
             let mut b = [0; 10];
             let mut a = overlapped();
             unsafe {
-                s.read_overlapped(&mut b, &mut a).unwrap();
+                t!(s.read_overlapped(&mut b, &mut a));
             }
-            let status = cp.get(None).unwrap();
+            let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
             assert_eq!(&b[0..3], &[1, 2, 3]);
 
-            t.join().unwrap();
+            t!(t.join());
         })
     }
 
     #[test]
     fn tcp_write() {
         each_ip(&mut |addr| {
-            let l = TcpListener::bind(addr).unwrap();
-            let addr = l.local_addr().unwrap();
+            let l = t!(TcpListener::bind(addr));
+            let addr = t!(l.local_addr());
             let t = thread::spawn(move || {
-                let mut a = l.accept().unwrap().0;
+                let mut a = t!(l.accept()).0;
                 let mut b = [0; 10];
-                let n = a.read(&mut b).unwrap();
+                let n = t!(a.read(&mut b));
                 assert_eq!(n, 3);
                 assert_eq!(&b[0..3], &[1, 2, 3]);
             });
 
-            let cp = CompletionPort::new(1).unwrap();
-            let s = TcpStream::connect(addr).unwrap();
-            cp.add_socket(1, &s).unwrap();
+            let cp = t!(CompletionPort::new(1));
+            let s = t!(TcpStream::connect(addr));
+            t!(cp.add_socket(1, &s));
 
             let b = [1, 2, 3];
             let mut a = overlapped();
             unsafe {
-                s.write_overlapped(&b, &mut a).unwrap();
+                t!(s.write_overlapped(&b, &mut a));
             }
-            let status = cp.get(None).unwrap();
+            let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
 
-            t.join().unwrap();
+            t!(t.join());
+        })
+    }
+
+    #[test]
+    fn tcp_connect() {
+        each_ip(&mut |addr_template| {
+            let l = t!(TcpListener::bind(addr_template));
+            let addr = t!(l.local_addr());
+            let t = thread::spawn(move || {
+                t!(l.accept());
+            });
+
+            let cp = t!(CompletionPort::new(1));
+            let builder = match addr {
+                SocketAddr::V4(..) => t!(TcpBuilder::new_v4()),
+                SocketAddr::V6(..) => t!(TcpBuilder::new_v6()),
+            };
+            t!(cp.add_socket(1, &builder));
+
+            let mut a = overlapped();
+            t!(builder.bind(addr_template));
+            let (_s, _) = unsafe {
+                t!(builder.connect_overlapped(&addr, &mut a))
+            };
+            let status = t!(cp.get(None));
+            assert_eq!(status.bytes_transferred(), 0);
+            assert_eq!(status.token(), 1);
+            assert_eq!(status.overlapped(), &mut a as *mut _);
+
+            t!(t.join());
         })
     }
 
     #[test]
     fn udp_recv_from() {
         each_ip(&mut |addr| {
-            let a = UdpSocket::bind(addr).unwrap();
-            let b = UdpSocket::bind(addr).unwrap();
-            let a_addr = a.local_addr().unwrap();
-            let b_addr = b.local_addr().unwrap();
+            let a = t!(UdpSocket::bind(addr));
+            let b = t!(UdpSocket::bind(addr));
+            let a_addr = t!(a.local_addr());
+            let b_addr = t!(b.local_addr());
             let t = thread::spawn(move || {
-                a.send_to(&[1, 2, 3], b_addr).unwrap();
+                t!(a.send_to(&[1, 2, 3], b_addr));
             });
 
-            let cp = CompletionPort::new(1).unwrap();
-            cp.add_socket(1, &b).unwrap();
+            let cp = t!(CompletionPort::new(1));
+            t!(cp.add_socket(1, &b));
 
             let mut buf = [0; 10];
             let mut a = overlapped();
             let mut addr = SocketAddrBuf::new();
             unsafe {
-                b.recv_from_overlapped(&mut buf, &mut addr, &mut a).unwrap();
+                t!(b.recv_from_overlapped(&mut buf, &mut addr, &mut a));
             }
-            let status = cp.get(None).unwrap();
+            let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
             assert_eq!(&buf[..3], &[1, 2, 3]);
             assert_eq!(addr.to_socket_addr(), Some(a_addr));
 
-            t.join().unwrap();
+            t!(t.join());
         })
     }
 
     #[test]
     fn udp_send_to() {
         each_ip(&mut |addr| {
-            let a = UdpSocket::bind(addr).unwrap();
-            let b = UdpSocket::bind(addr).unwrap();
-            let a_addr = a.local_addr().unwrap();
-            let b_addr = b.local_addr().unwrap();
+            let a = t!(UdpSocket::bind(addr));
+            let b = t!(UdpSocket::bind(addr));
+            let a_addr = t!(a.local_addr());
+            let b_addr = t!(b.local_addr());
             let t = thread::spawn(move || {
                 let mut b = [0; 100];
-                let (n, addr) = a.recv_from(&mut b).unwrap();
+                let (n, addr) = t!(a.recv_from(&mut b));
                 assert_eq!(n, 3);
                 assert_eq!(addr, b_addr);
                 assert_eq!(&b[..3], &[1, 2, 3]);
             });
 
-            let cp = CompletionPort::new(1).unwrap();
-            cp.add_socket(1, &b).unwrap();
+            let cp = t!(CompletionPort::new(1));
+            t!(cp.add_socket(1, &b));
 
             let mut a = overlapped();
             unsafe {
-                b.send_to_overlapped(&[1, 2, 3], &a_addr, &mut a).unwrap();
+                t!(b.send_to_overlapped(&[1, 2, 3], &a_addr, &mut a));
             }
-            let status = cp.get(None).unwrap();
+            let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
 
-            t.join().unwrap();
+            t!(t.join());
         })
     }
 }

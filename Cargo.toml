@@ -8,6 +8,8 @@ winapi = "0.2"
 kernel32-sys = "0.1"
 ws2_32-sys = "0.1"
 libc = "0.1"
+#net2 = "0.2"
+net2 = { git = "https://github.com/alexcrichton/net2-rs" }
 
 [features]
 unstable = []
