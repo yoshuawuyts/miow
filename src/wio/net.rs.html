@@ -834,7 +834,18 @@
 <span id="792">792</span>
 <span id="793">793</span>
 <span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
 </pre><pre class='rust '>
+<span class='doccomment'>//! Extensions and types for the standard networking primitives.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This module contains a number of extension traits for the types in</span>
+<span class='doccomment'>//! `std::net` for Windows-specific functionality.</span>
+
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_USIZE_INIT</span>};
@@ -1424,8 +1435,9 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
     <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 
-    <span class='kw'>use</span> {<span class='ident'>CompletionPort</span>, <span class='ident'>TcpStreamExt</span>, <span class='ident'>UdpSocketExt</span>, <span class='ident'>SocketAddrBuf</span>};
-    <span class='kw'>use</span> {<span class='ident'>TcpBuilderExt</span>, <span class='ident'>TcpListenerExt</span>, <span class='ident'>AcceptAddrsBuf</span>};
+    <span class='kw'>use</span> <span class='ident'>iocp</span>::<span class='ident'>CompletionPort</span>;
+    <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpStreamExt</span>, <span class='ident'>UdpSocketExt</span>, <span class='ident'>SocketAddrBuf</span>};
+    <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpBuilderExt</span>, <span class='ident'>TcpListenerExt</span>, <span class='ident'>AcceptAddrsBuf</span>};
     <span class='kw'>use</span> <span class='ident'>net2</span>::<span class='ident'>TcpBuilder</span>;
 
     <span class='kw'>fn</span> <span class='ident'>overlapped</span>() <span class='op'>-&gt;</span> <span class='ident'>WSAOVERLAPPED</span> {

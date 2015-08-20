@@ -96,10 +96,6 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! A zero overhead Windows I/O library</span>
 
@@ -126,12 +122,8 @@
 }
 
 <span class='kw'>mod</span> <span class='ident'>handle</span>;
-<span class='kw'>mod</span> <span class='ident'>iocp</span>;
-<span class='kw'>mod</span> <span class='ident'>net</span>;
-
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>iocp</span>::{<span class='ident'>CompletionPort</span>, <span class='ident'>CompletionStatus</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpStreamExt</span>, <span class='ident'>UdpSocketExt</span>, <span class='ident'>SocketAddrBuf</span>, <span class='ident'>TcpBuilderExt</span>};
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpListenerExt</span>, <span class='ident'>AcceptAddrsBuf</span>, <span class='ident'>AcceptAddrs</span>};
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>iocp</span>;
+<span class='kw'>pub</span> <span class='kw'>mod</span> <span class='ident'>net</span>;
 
 <span class='kw'>fn</span> <span class='ident'>dur2timeout</span>(<span class='ident'>dur</span>: <span class='ident'>Duration</span>) <span class='op'>-&gt;</span> <span class='ident'>DWORD</span> {
     <span class='comment'>// Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the</span>
