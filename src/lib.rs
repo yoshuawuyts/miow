@@ -26,9 +26,13 @@ macro_rules! t {
 }
 
 mod handle;
+mod overlapped;
+
 pub mod iocp;
 pub mod net;
 pub mod pipe;
+
+pub use overlapped::Overlapped;
 
 fn dur2timeout(dur: Duration) -> DWORD {
     // Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the

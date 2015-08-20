@@ -41,7 +41,7 @@ impl Handle {
     }
 
     pub unsafe fn read_overlapped(&self, buf: &mut [u8],
-                                  overlapped: &mut OVERLAPPED)
+                                  overlapped: *mut OVERLAPPED)
                                   -> io::Result<bool> {
         let res = ::cvt({
             ReadFile(self.0, buf.as_mut_ptr() as *mut _,
@@ -56,7 +56,7 @@ impl Handle {
     }
 
     pub unsafe fn write_overlapped(&self, buf: &[u8],
-                                   overlapped: &mut OVERLAPPED)
+                                   overlapped: *mut OVERLAPPED)
                                    -> io::Result<bool> {
         let res = ::cvt({
             WriteFile(self.0, buf.as_ptr() as *const _,

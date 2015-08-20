@@ -8,6 +8,7 @@ use std::time::Duration;
 use handle::Handle;
 use winapi::*;
 use kernel32::*;
+use Overlapped;
 
 /// A handle to an Windows I/O Completion Port.
 pub struct CompletionPort {
@@ -189,12 +190,12 @@ impl CompletionStatus {
     /// This function is useful when creating a status to send to a port with
     /// the `post` method. The parameters are opaquely passed through and not
     /// interpreted by the system at all.
-    pub fn new(bytes: u32, token: usize, overlapped: *mut OVERLAPPED)
+    pub fn new(bytes: u32, token: usize, overlapped: *mut Overlapped)
                -> CompletionStatus {
         CompletionStatus(OVERLAPPED_ENTRY {
             dwNumberOfBytesTransferred: bytes,
             lpCompletionKey: token as ULONG_PTR,
-            lpOverlapped: overlapped,
+            lpOverlapped: overlapped as *mut _,
             Internal: 0,
         })
     }
@@ -222,10 +223,10 @@ impl CompletionStatus {
         self.0.lpCompletionKey as usize
     }
 
-    /// Returns a pointer to the `OVERLAPPED` structure that was specified when
+    /// Returns a pointer to the `Overlapped` structure that was specified when
     /// the I/O operation was started.
-    pub fn overlapped(&self) -> *mut OVERLAPPED {
-        self.0.lpOverlapped
+    pub fn overlapped(&self) -> *mut Overlapped {
+        self.0.lpOverlapped as *mut _
     }
 }
 
