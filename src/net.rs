@@ -587,8 +587,8 @@ mod tests {
     use std::io::prelude::*;
     use winapi::*;
 
-    use {CompletionPort, TcpStreamExt, UdpSocketExt, SocketAddrBuf};
-    use {TcpBuilderExt, TcpListenerExt, AcceptAddrsBuf};
+    use net::{CompletionPort, TcpStreamExt, UdpSocketExt, SocketAddrBuf};
+    use net::{TcpBuilderExt, TcpListenerExt, AcceptAddrsBuf};
     use net2::TcpBuilder;
 
     fn overlapped() -> WSAOVERLAPPED {

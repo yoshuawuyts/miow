@@ -24,11 +24,9 @@ macro_rules! t {
 
 mod handle;
 mod iocp;
-mod net;
+pub mod net;
 
 pub use iocp::{CompletionPort, CompletionStatus};
-pub use net::{TcpStreamExt, UdpSocketExt, SocketAddrBuf, TcpBuilderExt};
-pub use net::{TcpListenerExt, AcceptAddrsBuf, AcceptAddrs};
 
 fn dur2timeout(dur: Duration) -> DWORD {
     // Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the
