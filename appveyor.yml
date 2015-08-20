@@ -20,7 +20,8 @@ build: false
 
 test_script:
   - cargo test
-  - cargo doc --no-deps
+  - cargo test --features unstable
+  - cargo doc --no-deps --features unstable
 
 after_test:
   - git clone https://github.com/alexcrichton/travis-cargo
