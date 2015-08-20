@@ -90,6 +90,9 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 
@@ -99,6 +102,9 @@
 <span class='doccomment'>/// initializers.</span>
 <span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Overlapped</span>(<span class='ident'>OVERLAPPED</span>);
+
+<span class='kw'>unsafe</span> <span class='kw'>impl</span> <span class='ident'>Send</span> <span class='kw'>for</span> <span class='ident'>Overlapped</span> {}
+<span class='kw'>unsafe</span> <span class='kw'>impl</span> <span class='ident'>Sync</span> <span class='kw'>for</span> <span class='ident'>Overlapped</span> {}
 
 <span class='kw'>impl</span> <span class='ident'>Overlapped</span> {
     <span class='doccomment'>/// Creates a new zeroed out instance of an overlapped I/O tracking state.</span>
