@@ -7,8 +7,8 @@ environment:
     secure: e2/vp8nNMaW1jJzM5gd6SK/wl45BjumwEFtfEaWiQCxagAE0zz8feZkDBVbt1DLk
 
 install:
-  - SET PATH=C:\Python27;C:\Python27\Scripts;%PATH%
-  - SET PATH=%PATH%;%APPDATA%\Python\Scripts
+  - SET PATH=C:\Python27;C:\Python27\Scripts;%PATH%;%APPDATA%\Python\Scripts
+  - pip install travis-cargo --user
   - ps: Start-FileDownload "https://static.rust-lang.org/dist/rust-nightly-${env:TARGET}.exe"
   - rust-nightly-%TARGET%.exe /VERYSILENT /NORESTART /DIR="C:\Program Files (x86)\Rust"
   - SET PATH=%PATH%;C:\Program Files (x86)\Rust\bin
@@ -24,6 +24,4 @@ test_script:
   - cargo doc --no-deps --features unstable
 
 after_test:
-  - git clone https://github.com/alexcrichton/travis-cargo
-  - set PYTHONPATH=%CD%/travis-cargo;%PYTHONPATH%
-  - python -c "import travis_cargo; travis_cargo.main()" doc-upload
+  - travis-cargo doc-upload
