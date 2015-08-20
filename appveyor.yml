@@ -24,4 +24,5 @@ test_script:
 
 after_test:
   - git clone https://github.com/alexcrichton/travis-cargo
-  - cd travis-cargo && python -c 'import travis_cargo; travis_cargo.main()' doc-upload
+  - set PYTHONPATH=%CD%/travis-cargo;%PYTHONPATH%
+  - python -c "import travis_cargo; travis_cargo.main()" doc-upload
