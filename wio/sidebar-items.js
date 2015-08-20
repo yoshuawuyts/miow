@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["iocp","Bindings to IOCP, I/O Completion Ports"],["net","Extensions and types for the standard networking primitives."]]});
+initSidebarItems({"mod":[["iocp","Bindings to IOCP, I/O Completion Ports"],["net","Extensions and types for the standard networking primitives."],["pipe","Named pipes"]]});

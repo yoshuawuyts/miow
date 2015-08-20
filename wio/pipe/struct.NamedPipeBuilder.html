@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `NamedPipeBuilder` struct in crate `wio`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, NamedPipeBuilder">
+
+    <title>wio::pipe::NamedPipeBuilder - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>pipe</a></p><script>window.sidebarCurrent = {name: 'NamedPipeBuilder', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>wio</a>::<wbr><a href='index.html'>pipe</a>::<wbr><a class='struct' href=''>NamedPipeBuilder</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-2914' class='srclink' href='../../src/wio/pipe.rs.html#24-32' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct NamedPipeBuilder {
+    // some fields omitted
+}</pre><div class='docblock'><p>A builder structure for creating a new named pipe.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../wio/pipe/struct.NamedPipeBuilder.html' title='wio::pipe::NamedPipeBuilder'>NamedPipeBuilder</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;A: <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html' title='std::ffi::os_str::OsStr'>OsStr</a>&gt;&gt;(addr: A) -&gt; <a class='struct' href='../../wio/pipe/struct.NamedPipeBuilder.html' title='wio::pipe::NamedPipeBuilder'>NamedPipeBuilder</a></code></h4>
+<div class='docblock'><p>Creates a new named pipe builder with the default settings.</p>
+</div><h4 id='method.inbound' class='method'><code>fn <a href='#method.inbound' class='fnname'>inbound</a>(&amp;mut self, allowed: <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Indicates whether data is allowed to flow from the client to the server.</p>
+</div><h4 id='method.outbound' class='method'><code>fn <a href='#method.outbound' class='fnname'>outbound</a>(&amp;mut self, allowed: <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Indicates whether data is allowed to flow from the server to the client.</p>
+</div><h4 id='method.first' class='method'><code>fn <a href='#method.first' class='fnname'>first</a>(&amp;mut self, first: <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Indicates that this pipe must be the first instance.</p>
+
+<p>If set to true, then creation will fail if there&#39;s already an instance
+elsewhere.</p>
+</div><h4 id='method.accept_remote' class='method'><code>fn <a href='#method.accept_remote' class='fnname'>accept_remote</a>(&amp;mut self, accept: <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Indicates whether this server can accept remote clients or not.</p>
+</div><h4 id='method.max_instances' class='method'><code>fn <a href='#method.max_instances' class='fnname'>max_instances</a>(&amp;mut self, instances: <a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Specifies the maximum number of instances of the server pipe that are
+allowed.</p>
+
+<p>The first instance of a pipe can specify this value. A value of 255
+indicates that there is no limit to the number of instances.</p>
+</div><h4 id='method.out_buffer_size' class='method'><code>fn <a href='#method.out_buffer_size' class='fnname'>out_buffer_size</a>(&amp;mut self, buffer: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Specifies the number of bytes to reserver for the output buffer</p>
+</div><h4 id='method.in_buffer_size' class='method'><code>fn <a href='#method.in_buffer_size' class='fnname'>in_buffer_size</a>(&amp;mut self, buffer: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; &amp;mut Self</code></h4>
+<div class='docblock'><p>Specifies the number of bytes to reserver for the input buffer</p>
+</div><h4 id='method.create' class='method'><code>fn <a href='#method.create' class='fnname'>create</a>(&amp;mut self) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a>&gt;</code></h4>
+<div class='docblock'><p>Using the options in this builder, attempt to create a new named pipe.</p>
+
+<p>This function will call the <code>CreateNamedPipe</code> function and return the
+result.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div>
+            <div class="shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h1>Search Tricks</h1>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "wio";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>

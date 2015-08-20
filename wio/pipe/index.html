@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `iocp` mod in crate `wio`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, iocp">
+    <meta name="description" content="API documentation for the Rust `pipe` mod in crate `wio`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, pipe">
 
-    <title>wio::iocp - Rust</title>
+    <title>wio::pipe - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'><a href='../index.html'>wio</a></p><script>window.sidebarCurrent = {name: 'iocp', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>wio</a></p><script>window.sidebarCurrent = {name: 'pipe', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
     </section>
 
     <nav class="sub">
@@ -41,28 +41,57 @@
     </nav>
 
     <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>wio</a>::<wbr><a class='mod' href=''>iocp</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>wio</a>::<wbr><a class='mod' href=''>pipe</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-207' class='srclink' href='../../src/wio/iocp.rs.html#1-290' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Bindings to IOCP, I/O Completion Ports</p>
+        </span><a id='src-2888' class='srclink' href='../../src/wio/pipe.rs.html#1-428' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Named pipes</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.CompletionPort.html'
-                               title='wio::iocp::CompletionPort'>CompletionPort</a></td>
+                        <td><a class='struct' href='struct.AnonRead.html'
+                               title='wio::pipe::AnonRead'>AnonRead</a></td>
                         <td class='docblock short'>
-                             <p>A handle to an Windows I/O Completion Port.</p>
+                             <p>Readable half of an anonymous pipe.</p>
 
                         </td>
                     </tr>
                 
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.CompletionStatus.html'
-                               title='wio::iocp::CompletionStatus'>CompletionStatus</a></td>
+                        <td><a class='struct' href='struct.AnonWrite.html'
+                               title='wio::pipe::AnonWrite'>AnonWrite</a></td>
                         <td class='docblock short'>
-                             <p>A status message received from an I/O completion port.</p>
+                             <p>Writable half of an anonymous pipe.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.NamedPipe.html'
+                               title='wio::pipe::NamedPipe'>NamedPipe</a></td>
+                        <td class='docblock short'>
+                             <p>A named pipe that can accept connections.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='struct' href='struct.NamedPipeBuilder.html'
+                               title='wio::pipe::NamedPipeBuilder'>NamedPipeBuilder</a></td>
+                        <td class='docblock short'>
+                             <p>A builder structure for creating a new named pipe.</p>
+
+                        </td>
+                    </tr>
+                </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.anonymous.html'
+                               title='wio::pipe::anonymous'>anonymous</a></td>
+                        <td class='docblock short'>
+                             <p>Creates a new anonymous in-memory pipe, returning the read/write ends of the
+pipe.</p>
 
                         </td>
                     </tr>

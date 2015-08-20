@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `AcceptAddrs` struct in crate `wio`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, AcceptAddrs">
+    <meta name="description" content="API documentation for the Rust `anonymous` fn in crate `wio`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, anonymous">
 
-    <title>wio::net::AcceptAddrs - Rust</title>
+    <title>wio::pipe::anonymous - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>net</a></p><script>window.sidebarCurrent = {name: 'AcceptAddrs', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>pipe</a></p><script>window.sidebarCurrent = {name: 'anonymous', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </section>
 
     <nav class="sub">
@@ -40,20 +40,19 @@
         </form>
     </nav>
 
-    <section id='main' class="content struct">
-<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>wio</a>::<wbr><a href='index.html'>net</a>::<wbr><a class='struct' href=''>AcceptAddrs</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content fn">
+<h1 class='fqn'><span class='in-band'>Function <a href='../index.html'>wio</a>::<wbr><a href='index.html'>pipe</a>::<wbr><a class='fn' href=''>anonymous</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-971' class='srclink' href='../../src/wio/net.rs.html#47-53' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct AcceptAddrs&lt;'a&gt; {
-    // some fields omitted
-}</pre><div class='docblock'><p>The parsed return value of <code>AcceptAddrsBuf</code>.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a&gt; <a class='struct' href='../../wio/net/struct.AcceptAddrs.html' title='wio::net::AcceptAddrs'>AcceptAddrs</a>&lt;'a&gt;</code></h3><div class='impl-items'><h4 id='method.local' class='method'><code>fn <a href='#method.local' class='fnname'>local</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>&gt;</code></h4>
-<div class='docblock'><p>Returns the local socket address contained in this buffer.</p>
-</div><h4 id='method.remote' class='method'><code>fn <a href='#method.remote' class='fnname'>remote</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>&gt;</code></h4>
-<div class='docblock'><p>Returns the remote socket address contained in this buffer.</p>
-</div></div></section>
+        </span><a id='src-2931' class='srclink' href='../../src/wio/pipe.rs.html#40-47' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn anonymous(buffer_size: <a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='../../wio/pipe/struct.AnonRead.html' title='wio::pipe::AnonRead'>AnonRead</a>, <a class='struct' href='../../wio/pipe/struct.AnonWrite.html' title='wio::pipe::AnonWrite'>AnonWrite</a>)</a>&gt;</pre><div class='docblock'><p>Creates a new anonymous in-memory pipe, returning the read/write ends of the
+pipe.</p>
+
+<p>The buffer size for this pipe may also be specified, but the system will
+normally use this as a suggestion and it&#39;s not guaranteed that the buffer
+will be precisely this size.</p>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
