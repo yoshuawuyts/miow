@@ -1,6 +1,7 @@
 //! Named pipes
 
 use std::ffi::OsStr;
+use std::fs::{OpenOptions, File};
 use std::io::prelude::*;
 use std::io;
 use std::os::windows::ffi::*;
@@ -86,6 +87,36 @@ impl FromRawHandle for AnonWrite {
 #[cfg(feature = "unstable")]
 impl IntoRawHandle for AnonWrite {
     fn into_raw_handle(self) -> HANDLE { self.0.into_raw() }
+}
+
+/// A convenience function to connect to a named pipe.
+///
+/// This function will block the calling process until it can connect to the
+/// pipe server specified by `addr`. This will use `NamedPipe::wait` internally
+/// to block until it can connect.
+pub fn connect<A: AsRef<OsStr>>(addr: A) -> io::Result<File> {
+    _connect(addr.as_ref())
+}
+
+fn _connect(addr: &OsStr) -> io::Result<File> {
+    let mut r = OpenOptions::new();
+    let mut w = OpenOptions::new();
+    let mut rw = OpenOptions::new();
+    r.read(true);
+    w.write(true);
+    rw.read(true).write(true);
+    loop {
+        let res = rw.open(addr).or_else(|_| r.open(addr))
+                               .or_else(|_| w.open(addr));
+        match res {
+            Ok(f) => return Ok(f),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32)
+                => {}
+            Err(e) => return Err(e),
+        }
+
+        try!(NamedPipe::wait(addr, Some(Duration::new(20, 0))))
+    }
 }
 
 impl NamedPipe {
@@ -523,7 +554,7 @@ mod tests {
         let a = t!(NamedPipe::new(&name));
 
         let t = thread::spawn(move || {
-            let mut f = t!(File::open(name));
+            let mut f = t!(super::connect(name));
             let mut b = [0; 10];
             assert_eq!(t!(f.read(&mut b)), 3);
             assert_eq!(&b[..3], &[1, 2, 3])
