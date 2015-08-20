@@ -23,10 +23,8 @@ macro_rules! t {
 }
 
 mod handle;
-mod iocp;
+pub mod iocp;
 pub mod net;
-
-pub use iocp::{CompletionPort, CompletionStatus};
 
 fn dur2timeout(dur: Duration) -> DWORD {
     // Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the

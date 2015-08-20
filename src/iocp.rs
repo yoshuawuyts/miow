@@ -233,7 +233,7 @@ mod tests {
     use std::time::Duration;
     use winapi::*;
 
-    use {CompletionPort, CompletionStatus};
+    use iocp::{CompletionPort, CompletionStatus};
 
     #[test]
     fn is_send_sync() {

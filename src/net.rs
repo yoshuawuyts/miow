@@ -587,7 +587,8 @@ mod tests {
     use std::io::prelude::*;
     use winapi::*;
 
-    use net::{CompletionPort, TcpStreamExt, UdpSocketExt, SocketAddrBuf};
+    use iocp::CompletionPort;
+    use net::{TcpStreamExt, UdpSocketExt, SocketAddrBuf};
     use net::{TcpBuilderExt, TcpListenerExt, AcceptAddrsBuf};
     use net2::TcpBuilder;
 
