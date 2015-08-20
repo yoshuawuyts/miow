@@ -7,6 +7,7 @@ readme = "README.md"
 keywords = ["iocp", "windows", "io", "overlapped"]
 repository = "https://github.com/alexcrichton/wio"
 homepage = "https://github.com/alexcrichton/wio"
+documentation = "http://alexcrichton.com/wio"
 description = """
 A zero overhead I/O library for Windows, focusing on IOCP and Async I/O
 abstractions.

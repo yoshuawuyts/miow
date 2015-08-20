@@ -2,6 +2,8 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/tc5lsxokjk86949l?svg=true)](https://ci.appveyor.com/project/alexcrichton/wio)
 
+[Documentation](http://alexcrichton.com/wio)
+
 A zero overhead Windows I/O library focusing on IOCP and other async I/O
 features.
 

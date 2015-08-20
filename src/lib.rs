@@ -3,6 +3,7 @@
 #![cfg_attr(feature = "unstable", feature(into_raw_os))]
 #![cfg(windows)]
 #![deny(missing_docs)]
+#![doc(html_root_url = "http://alexcrichton.com/wio")]
 
 extern crate kernel32;
 extern crate libc;
