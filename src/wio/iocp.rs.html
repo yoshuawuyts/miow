@@ -331,6 +331,7 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Bindings to IOCP, I/O Completion Ports</span>
 
@@ -345,6 +346,7 @@
 <span class='kw'>use</span> <span class='ident'>Overlapped</span>;
 
 <span class='doccomment'>/// A handle to an Windows I/O Completion Port.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>CompletionPort</span> {
     <span class='ident'>handle</span>: <span class='ident'>Handle</span>,
 }

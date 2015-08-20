@@ -618,6 +618,10 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Named pipes</span>
 
@@ -635,15 +639,19 @@
 <span class='kw'>use</span> <span class='ident'>Overlapped</span>;
 
 <span class='doccomment'>/// Readable half of an anonymous pipe.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>AnonRead</span>(<span class='ident'>Handle</span>);
 
 <span class='doccomment'>/// Writable half of an anonymous pipe.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>AnonWrite</span>(<span class='ident'>Handle</span>);
 
 <span class='doccomment'>/// A named pipe that can accept connections.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>NamedPipe</span>(<span class='ident'>Handle</span>);
 
 <span class='doccomment'>/// A builder structure for creating a new named pipe.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>NamedPipeBuilder</span> {
     <span class='ident'>name</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>u16</span><span class='op'>&gt;</span>,
     <span class='ident'>dwOpenMode</span>: <span class='ident'>DWORD</span>,

@@ -89,6 +89,7 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 
@@ -96,6 +97,7 @@
 
 <span class='doccomment'>/// A wrapper around `OVERLAPPED` to provide &quot;rustic&quot; accessors and</span>
 <span class='doccomment'>/// initializers.</span>
+<span class='attribute'>#[<span class='ident'>derive</span>(<span class='ident'>Debug</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Overlapped</span>(<span class='ident'>OVERLAPPED</span>);
 
 <span class='kw'>impl</span> <span class='ident'>Overlapped</span> {
