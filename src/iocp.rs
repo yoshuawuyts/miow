@@ -1,3 +1,5 @@
+//! Bindings to IOCP, I/O Completion Ports
+
 use std::io;
 use std::mem;
 use std::os::windows::io::*;

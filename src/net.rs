@@ -1,3 +1,8 @@
+//! Extensions and types for the standard networking primitives.
+//!
+//! This module contains a number of extension traits for the types in
+//! `std::net` for Windows-specific functionality.
+
 use std::io;
 use std::mem;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
