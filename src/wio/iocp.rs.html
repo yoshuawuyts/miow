@@ -330,6 +330,7 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Bindings to IOCP, I/O Completion Ports</span>
 
@@ -341,6 +342,7 @@
 <span class='kw'>use</span> <span class='ident'>handle</span>::<span class='ident'>Handle</span>;
 <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>kernel32</span>::<span class='op'>*</span>;
+<span class='kw'>use</span> <span class='ident'>Overlapped</span>;
 
 <span class='doccomment'>/// A handle to an Windows I/O Completion Port.</span>
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>CompletionPort</span> {
@@ -522,12 +524,12 @@
     <span class='doccomment'>/// This function is useful when creating a status to send to a port with</span>
     <span class='doccomment'>/// the `post` method. The parameters are opaquely passed through and not</span>
     <span class='doccomment'>/// interpreted by the system at all.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>bytes</span>: <span class='ident'>u32</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>, <span class='ident'>overlapped</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>OVERLAPPED</span>)
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>bytes</span>: <span class='ident'>u32</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>, <span class='ident'>overlapped</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                <span class='op'>-&gt;</span> <span class='ident'>CompletionStatus</span> {
         <span class='ident'>CompletionStatus</span>(<span class='ident'>OVERLAPPED_ENTRY</span> {
             <span class='ident'>dwNumberOfBytesTransferred</span>: <span class='ident'>bytes</span>,
             <span class='ident'>lpCompletionKey</span>: <span class='ident'>token</span> <span class='kw'>as</span> <span class='ident'>ULONG_PTR</span>,
-            <span class='ident'>lpOverlapped</span>: <span class='ident'>overlapped</span>,
+            <span class='ident'>lpOverlapped</span>: <span class='ident'>overlapped</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
             <span class='ident'>Internal</span>: <span class='number'>0</span>,
         })
     }
@@ -555,10 +557,10 @@
         <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lpCompletionKey</span> <span class='kw'>as</span> <span class='ident'>usize</span>
     }
 
-    <span class='doccomment'>/// Returns a pointer to the `OVERLAPPED` structure that was specified when</span>
+    <span class='doccomment'>/// Returns a pointer to the `Overlapped` structure that was specified when</span>
     <span class='doccomment'>/// the I/O operation was started.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>OVERLAPPED</span> {
-        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lpOverlapped</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span> {
+        <span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>lpOverlapped</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _
     }
 }
 

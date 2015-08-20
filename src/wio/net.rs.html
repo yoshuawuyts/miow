@@ -831,15 +831,6 @@
 <span id="789">789</span>
 <span id="790">790</span>
 <span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Extensions and types for the standard networking primitives.</span>
 <span class='doccomment'>//!</span>
@@ -857,6 +848,7 @@
 <span class='kw'>use</span> <span class='ident'>net2</span>::<span class='ident'>TcpBuilder</span>;
 <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>ws2_32</span>::<span class='op'>*</span>;
+<span class='kw'>use</span> <span class='ident'>Overlapped</span>;
 
 <span class='doccomment'>/// A type to represent a buffer in which a socket address will be stored.</span>
 <span class='doccomment'>///</span>
@@ -906,7 +898,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This function will issue an overlapped I/O read (via `WSARecv`) on this</span>
     <span class='doccomment'>/// socket. The provided buffer will be filled in when the operation</span>
-    <span class='doccomment'>/// completes and the given `WSAOVERLAPPED` instance is used to track the</span>
+    <span class='doccomment'>/// completes and the given `Overlapped` instance is used to track the</span>
     <span class='doccomment'>/// overlapped operation.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If the operation succeeds, `Ok(true)` is returned. If the operation</span>
@@ -930,13 +922,13 @@
     <span class='doccomment'>/// the port.</span>
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>read_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                               <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>],
-                              <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
+                              <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
 
     <span class='doccomment'>/// Execute an overlapped write I/O operation on this TCP stream.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This function will issue an overlapped I/O write (via `WSASend`) on this</span>
     <span class='doccomment'>/// socket. The provided buffer will be written when the operation completes</span>
-    <span class='doccomment'>/// and the given `WSAOVERLAPPED` instance is used to track the overlapped</span>
+    <span class='doccomment'>/// and the given `Overlapped` instance is used to track the overlapped</span>
     <span class='doccomment'>/// operation.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If the operation succeeds, `Ok(true)` is returned. If the operation</span>
@@ -960,7 +952,7 @@
     <span class='doccomment'>/// the port.</span>
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>write_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>],
-                               <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
+                               <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
 }
 
 <span class='doccomment'>/// Additional methods for the `UdpSocket` type in the standard library.</span>
@@ -970,7 +962,7 @@
     <span class='doccomment'>/// This function will issue an overlapped I/O read (via `WSARecvFrom`) on</span>
     <span class='doccomment'>/// this socket. The provided buffer will be filled in when the operation</span>
     <span class='doccomment'>/// completes, the source from where the data came from will be written to</span>
-    <span class='doccomment'>/// `addr`, and the given `WSAOVERLAPPED` instance is used to track the</span>
+    <span class='doccomment'>/// `addr`, and the given `Overlapped` instance is used to track the</span>
     <span class='doccomment'>/// overlapped operation.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If the operation succeeds, `Ok(true)` is returned. If the operation</span>
@@ -995,14 +987,14 @@
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>recv_from_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                    <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>],
                                    <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SocketAddrBuf</span>,
-                                   <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                   <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                    <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
 
     <span class='doccomment'>/// Execute an overlapped send I/O operation on this UDP socket.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// This function will issue an overlapped I/O write (via `WSASendTo`) on</span>
     <span class='doccomment'>/// this socket to the address specified by `addr`. The provided buffer will</span>
-    <span class='doccomment'>/// be written when the operation completes and the given `WSAOVERLAPPED`</span>
+    <span class='doccomment'>/// be written when the operation completes and the given `Overlapped`</span>
     <span class='doccomment'>/// instance is used to track the overlapped operation.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If the operation succeeds, `Ok(true)` is returned. If the operation</span>
@@ -1027,7 +1019,7 @@
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>send_to_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                  <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>],
                                  <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>,
-                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span>;
 }
 
@@ -1059,7 +1051,7 @@
     <span class='doccomment'>/// valid until the I/O operation is completed, typically via completion</span>
     <span class='doccomment'>/// ports and waiting to receive the completion notification on the port.</span>
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>connect_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>,
-                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>TcpStream</span>, <span class='ident'>bool</span>)<span class='op'>&gt;</span>;
 }
 
@@ -1094,7 +1086,7 @@
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>accept_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                 <span class='ident'>socket</span>: <span class='kw-2'>&amp;</span><span class='ident'>TcpBuilder</span>,
                                 <span class='ident'>addrs</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>AcceptAddrsBuf</span>,
-                                <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                 <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>TcpStream</span>, <span class='ident'>bool</span>)<span class='op'>&gt;</span>;
 }
 
@@ -1179,25 +1171,25 @@
 
 <span class='kw'>impl</span> <span class='ident'>TcpStreamExt</span> <span class='kw'>for</span> <span class='ident'>TcpStream</span> {
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>read_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>],
-                              <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>OVERLAPPED</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
+                              <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
             <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
             <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_mut_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
         };
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>flags</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSARecv</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
-                        <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>, <span class='ident'>overlapped</span>, <span class='prelude-val'>None</span>);
+                        <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
         <span class='ident'>cvt</span>(<span class='ident'>r</span>)
     }
 
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>write_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>],
-                               <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>OVERLAPPED</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
+                               <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
             <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
             <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
         };
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSASend</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
-                        <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>, <span class='ident'>overlapped</span>, <span class='prelude-val'>None</span>);
+                        <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
         <span class='ident'>cvt</span>(<span class='ident'>r</span>)
     }
 }
@@ -1206,7 +1198,7 @@
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>recv_from_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                    <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>],
                                    <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SocketAddrBuf</span>,
-                                   <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                   <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                    <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
             <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
@@ -1217,14 +1209,14 @@
                             <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>,
                             <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>.<span class='ident'>buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _ <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
                             <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>.<span class='ident'>len</span>,
-                            <span class='ident'>overlapped</span>, <span class='prelude-val'>None</span>);
+                            <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
         <span class='ident'>cvt</span>(<span class='ident'>r</span>)
     }
 
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>send_to_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                  <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>],
                                  <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>,
-                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> (<span class='ident'>addr_buf</span>, <span class='ident'>addr_len</span>) <span class='op'>=</span> <span class='ident'>socket_addr_to_ptrs</span>(<span class='ident'>addr</span>);
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
@@ -1234,14 +1226,14 @@
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSASendTo</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
                           <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>,
                           <span class='ident'>addr_buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> _, <span class='ident'>addr_len</span>,
-                          <span class='ident'>overlapped</span>, <span class='prelude-val'>None</span>);
+                          <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
         <span class='ident'>cvt</span>(<span class='ident'>r</span>)
     }
 }
 
 <span class='kw'>impl</span> <span class='ident'>TcpBuilderExt</span> <span class='kw'>for</span> <span class='ident'>TcpBuilder</span> {
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>connect_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>SocketAddr</span>,
-                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                 <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>TcpStream</span>, <span class='ident'>bool</span>)<span class='op'>&gt;</span> {
         <span class='kw'>static</span> <span class='ident'>CONNECTEX</span>: <span class='ident'>WsaExtension</span> <span class='op'>=</span> <span class='ident'>WsaExtension</span> {
             <span class='ident'>guid</span>: <span class='ident'>GUID</span> {
@@ -1262,7 +1254,7 @@
 
         <span class='kw'>let</span> (<span class='ident'>addr_buf</span>, <span class='ident'>addr_len</span>) <span class='op'>=</span> <span class='ident'>socket_addr_to_ptrs</span>(<span class='ident'>addr</span>);
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>connect_ex</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='ident'>addr_buf</span>, <span class='ident'>addr_len</span>,
-                           <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>, <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='ident'>overlapped</span>);
+                           <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>, <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>());
         <span class='kw'>let</span> <span class='ident'>succeeded</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>r</span> <span class='op'>==</span> <span class='ident'>TRUE</span> {
             <span class='boolval'>true</span>
         } <span class='kw'>else</span> {
@@ -1277,7 +1269,7 @@
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>accept_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                                 <span class='ident'>socket</span>: <span class='kw-2'>&amp;</span><span class='ident'>TcpBuilder</span>,
                                 <span class='ident'>addrs</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>AcceptAddrsBuf</span>,
-                                <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>WSAOVERLAPPED</span>)
+                                <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                 <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(<span class='ident'>TcpStream</span>, <span class='ident'>bool</span>)<span class='op'>&gt;</span> {
         <span class='kw'>static</span> <span class='ident'>ACCEPTEX</span>: <span class='ident'>WsaExtension</span> <span class='op'>=</span> <span class='ident'>WsaExtension</span> {
             <span class='ident'>guid</span>: <span class='ident'>GUID</span> {
@@ -1299,7 +1291,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bytes</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> (<span class='ident'>a</span>, <span class='ident'>b</span>, <span class='ident'>c</span>, <span class='ident'>d</span>) <span class='op'>=</span> <span class='ident'>addrs</span>.<span class='ident'>args</span>();
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>accept_ex</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='ident'>socket</span>.<span class='ident'>as_raw_socket</span>(),
-                          <span class='ident'>a</span>, <span class='ident'>b</span>, <span class='ident'>c</span>, <span class='ident'>d</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>bytes</span>, <span class='ident'>overlapped</span>);
+                          <span class='ident'>a</span>, <span class='ident'>b</span>, <span class='ident'>c</span>, <span class='ident'>d</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>bytes</span>, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>());
         <span class='kw'>let</span> <span class='ident'>succeeded</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ident'>r</span> <span class='op'>==</span> <span class='ident'>TRUE</span> {
             <span class='boolval'>true</span>
         } <span class='kw'>else</span> {
@@ -1433,22 +1425,12 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>net</span>::{<span class='ident'>TcpListener</span>, <span class='ident'>UdpSocket</span>, <span class='ident'>TcpStream</span>, <span class='ident'>SocketAddr</span>};
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
-    <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 
+    <span class='kw'>use</span> <span class='ident'>Overlapped</span>;
     <span class='kw'>use</span> <span class='ident'>iocp</span>::<span class='ident'>CompletionPort</span>;
     <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpStreamExt</span>, <span class='ident'>UdpSocketExt</span>, <span class='ident'>SocketAddrBuf</span>};
     <span class='kw'>use</span> <span class='ident'>net</span>::{<span class='ident'>TcpBuilderExt</span>, <span class='ident'>TcpListenerExt</span>, <span class='ident'>AcceptAddrsBuf</span>};
     <span class='kw'>use</span> <span class='ident'>net2</span>::<span class='ident'>TcpBuilder</span>;
-
-    <span class='kw'>fn</span> <span class='ident'>overlapped</span>() <span class='op'>-&gt;</span> <span class='ident'>WSAOVERLAPPED</span> {
-        <span class='ident'>WSAOVERLAPPED</span> {
-            <span class='ident'>Internal</span>: <span class='number'>0</span>,
-            <span class='ident'>InternalHigh</span>: <span class='number'>0</span>,
-            <span class='ident'>Offset</span>: <span class='number'>0</span>,
-            <span class='ident'>OffsetHigh</span>: <span class='number'>0</span>,
-            <span class='ident'>hEvent</span>: <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-        }
-    }
 
     <span class='kw'>fn</span> <span class='ident'>each_ip</span>(<span class='ident'>f</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>FnMut</span>(<span class='ident'>SocketAddr</span>)) {
         <span class='ident'>f</span>(<span class='macro'>t</span><span class='macro'>!</span>(<span class='string'>&quot;127.0.0.1:0&quot;</span>.<span class='ident'>parse</span>()));
@@ -1470,7 +1452,7 @@
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>s</span>));
 
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> [<span class='number'>0</span>; <span class='number'>10</span>];
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>read_overlapped</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>b</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>));
             }
@@ -1502,7 +1484,7 @@
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>s</span>));
 
             <span class='kw'>let</span> <span class='ident'>b</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>write_overlapped</span>(<span class='kw-2'>&amp;</span><span class='ident'>b</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>));
             }
@@ -1531,7 +1513,7 @@
             };
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>builder</span>));
 
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>builder</span>.<span class='ident'>bind</span>(<span class='ident'>addr_template</span>));
             <span class='kw'>let</span> (<span class='ident'>_s</span>, _) <span class='op'>=</span> <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>builder</span>.<span class='ident'>connect_overlapped</span>(<span class='kw-2'>&amp;</span><span class='ident'>addr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>))
@@ -1560,7 +1542,7 @@
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>b</span>));
 
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> [<span class='number'>0</span>; <span class='number'>10</span>];
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='ident'>SocketAddrBuf</span>::<span class='ident'>new</span>();
             <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>b</span>.<span class='ident'>recv_from_overlapped</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>));
@@ -1594,7 +1576,7 @@
             <span class='kw'>let</span> <span class='ident'>cp</span> <span class='op'>=</span> <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>CompletionPort</span>::<span class='ident'>new</span>(<span class='number'>1</span>));
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>b</span>));
 
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>b</span>.<span class='ident'>send_to_overlapped</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>], <span class='kw-2'>&amp;</span><span class='ident'>a_addr</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>));
             }
@@ -1624,7 +1606,7 @@
             };
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>cp</span>.<span class='ident'>add_socket</span>(<span class='number'>1</span>, <span class='kw-2'>&amp;</span><span class='ident'>l</span>));
 
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>overlapped</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='ident'>Overlapped</span>::<span class='ident'>zero</span>();
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>addrs</span> <span class='op'>=</span> <span class='ident'>AcceptAddrsBuf</span>::<span class='ident'>new</span>();
             <span class='kw'>let</span> (<span class='ident'>_s</span>, _) <span class='op'>=</span> <span class='kw'>unsafe</span> {
                 <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>l</span>.<span class='ident'>accept_overlapped</span>(<span class='kw-2'>&amp;</span><span class='ident'>builder</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>addrs</span>, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>a</span>))

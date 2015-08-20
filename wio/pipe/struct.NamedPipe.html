@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3046' class='srclink' href='../../src/wio/pipe.rs.html#22' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-3176' class='srclink' href='../../src/wio/pipe.rs.html#23' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct NamedPipe(_);</pre><div class='docblock'><p>A named pipe that can accept connections.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;A: <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html' title='std::ffi::os_str::OsStr'>OsStr</a>&gt;&gt;(addr: A) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a>&gt;</code></h4>
 <div class='docblock'><p>Creates a new initial named pipe.</p>
@@ -74,7 +74,7 @@ available.</p>
 <p>This function will call the <code>ConnectNamedPipe</code> function to await for a
 client to connect. This can be called immediately after the pipe is
 created, or after it has been disconnected from a previous client.</p>
-</div><h4 id='method.connect_overlapped' class='method'><code>unsafe fn <a href='#method.connect_overlapped' class='fnname'>connect_overlapped</a>(&amp;self, overlapped: &amp;mut OVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
+</div><h4 id='method.connect_overlapped' class='method'><code>unsafe fn <a href='#method.connect_overlapped' class='fnname'>connect_overlapped</a>(&amp;self, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
 <div class='docblock'><p>Issue a connection request with the specified overlapped operation.</p>
 
 <p>This function will issue a request to connect a client to this server,
@@ -96,7 +96,7 @@ valid until the I/O operation is completed, typically via completion
 ports and waiting to receive the completion notification on the port.</p>
 </div><h4 id='method.disconnect' class='method'><code>fn <a href='#method.disconnect' class='fnname'>disconnect</a>(&amp;self) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
 <div class='docblock'><p>Disconnects this named pipe from any connected client.</p>
-</div><h4 id='method.read_overlapped' class='method'><code>unsafe fn <a href='#method.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut OVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
+</div><h4 id='method.read_overlapped' class='method'><code>unsafe fn <a href='#method.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
 <div class='docblock'><p>Issues an overlapped read operation to occur on this pipe.</p>
 
 <p>This function will issue an asynchronous read to occur in an overlapped
@@ -122,7 +122,7 @@ operation and is not in use for any other I/O.</p>
 <p>To safely use this function callers must ensure that the pointers are
 valid until the I/O operation is completed, typically via completion
 ports and waiting to receive the completion notification on the port.</p>
-</div><h4 id='method.write_overlapped' class='method'><code>unsafe fn <a href='#method.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut OVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
+</div><h4 id='method.write_overlapped' class='method'><code>unsafe fn <a href='#method.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
 <div class='docblock'><p>Issues an overlapped write operation to occur on this pipe.</p>
 
 <p>This function will issue an asynchronous write to occur in an overlapped

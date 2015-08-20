@@ -45,19 +45,19 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1126' class='srclink' href='../../src/wio/net.rs.html#61-121' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-1249' class='srclink' href='../../src/wio/net.rs.html#62-122' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait TcpStreamExt {
-    unsafe fn <a href='#tymethod.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut WSAOVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
-    unsafe fn <a href='#tymethod.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut WSAOVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
+    unsafe fn <a href='#tymethod.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
+    unsafe fn <a href='#tymethod.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
 }</pre><div class='docblock'><p>Additional methods for the <code>TcpStream</code> type in the standard library.</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.read_overlapped' class='method stab '><code>unsafe fn <a href='#tymethod.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut WSAOVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h3><div class='docblock'><p>Execute an overlapped read I/O operation on this TCP stream.</p>
+        <h3 id='tymethod.read_overlapped' class='method stab '><code>unsafe fn <a href='#tymethod.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h3><div class='docblock'><p>Execute an overlapped read I/O operation on this TCP stream.</p>
 
 <p>This function will issue an overlapped I/O read (via <code>WSARecv</code>) on this
 socket. The provided buffer will be filled in when the operation
-completes and the given <code>WSAOVERLAPPED</code> instance is used to track the
+completes and the given <code>Overlapped</code> instance is used to track the
 overlapped operation.</p>
 
 <p>If the operation succeeds, <code>Ok(true)</code> is returned. If the operation
@@ -79,11 +79,11 @@ and is not in use for any other I/O.</p>
 pointers are valid until the I/O operation is completed, typically via
 completion ports and waiting to receive the completion notification on
 the port.</p>
-</div><h3 id='tymethod.write_overlapped' class='method stab '><code>unsafe fn <a href='#tymethod.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut WSAOVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h3><div class='docblock'><p>Execute an overlapped write I/O operation on this TCP stream.</p>
+</div><h3 id='tymethod.write_overlapped' class='method stab '><code>unsafe fn <a href='#tymethod.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h3><div class='docblock'><p>Execute an overlapped write I/O operation on this TCP stream.</p>
 
 <p>This function will issue an overlapped I/O write (via <code>WSASend</code>) on this
 socket. The provided buffer will be written when the operation completes
-and the given <code>WSAOVERLAPPED</code> instance is used to track the overlapped
+and the given <code>Overlapped</code> instance is used to track the overlapped
 operation.</p>
 
 <p>If the operation succeeds, <code>Ok(true)</code> is returned. If the operation

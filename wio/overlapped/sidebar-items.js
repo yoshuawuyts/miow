@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Overlapped","A wrapper around `OVERLAPPED` to provide \"rustic\" accessors and initializers."]]});
