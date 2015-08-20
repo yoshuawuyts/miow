@@ -1,4 +1,5 @@
 use std::mem;
+use std::io;
 
 use winapi::*;
 use kernel32::*;
@@ -19,6 +20,24 @@ impl Handle {
         let ret = self.0;
         mem::forget(self);
         ret
+    }
+
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        let mut bytes = 0;
+        try!(::cvt(unsafe {
+            WriteFile(self.0, buf.as_ptr() as *const _,
+                      buf.len() as DWORD, &mut bytes, 0 as *mut _)
+        }));
+        Ok(bytes as usize)
+    }
+
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut bytes = 0;
+        try!(::cvt(unsafe {
+            ReadFile(self.0, buf.as_mut_ptr() as *mut _,
+                     buf.len() as DWORD, &mut bytes, 0 as *mut _)
+        }));
+        Ok(bytes as usize)
     }
 }
 

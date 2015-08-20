@@ -3,6 +3,7 @@
 #![cfg_attr(feature = "unstable", feature(into_raw_os))]
 #![cfg(windows)]
 #![deny(missing_docs)]
+#![allow(bad_style)]
 #![doc(html_root_url = "http://alexcrichton.com/wio")]
 
 extern crate kernel32;
@@ -10,6 +11,8 @@ extern crate libc;
 extern crate net2;
 extern crate winapi;
 extern crate ws2_32;
+
+#[cfg(test)] extern crate rand;
 
 use std::time::Duration;
 use std::io;
@@ -25,6 +28,7 @@ macro_rules! t {
 mod handle;
 pub mod iocp;
 pub mod net;
+pub mod pipe;
 
 fn dur2timeout(dur: Duration) -> DWORD {
     // Note that a duration is a (u64, u32) (seconds, nanoseconds) pair, and the

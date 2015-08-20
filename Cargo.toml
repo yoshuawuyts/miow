@@ -20,5 +20,8 @@ ws2_32-sys = "0.1"
 libc = "0.1"
 net2 = "0.2.5"
 
+[dev-dependencies]
+rand = "0.3"
+
 [features]
 unstable = []
