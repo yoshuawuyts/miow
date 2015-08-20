@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2909' class='srclink' href='../../src/wio/pipe.rs.html#21' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-3043' class='srclink' href='../../src/wio/pipe.rs.html#21' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct NamedPipe(_);</pre><div class='docblock'><p>A named pipe that can accept connections.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;A: <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html' title='std::ffi::os_str::OsStr'>OsStr</a>&gt;&gt;(addr: A) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a>&gt;</code></h4>
 <div class='docblock'><p>Creates a new initial named pipe.</p>
@@ -96,6 +96,58 @@ valid until the I/O operation is completed, typically via completion
 ports and waiting to receive the completion notification on the port.</p>
 </div><h4 id='method.disconnect' class='method'><code>fn <a href='#method.disconnect' class='fnname'>disconnect</a>(&amp;self) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
 <div class='docblock'><p>Disconnects this named pipe from any connected client.</p>
+</div><h4 id='method.read_overlapped' class='method'><code>unsafe fn <a href='#method.read_overlapped' class='fnname'>read_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut OVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
+<div class='docblock'><p>Issues an overlapped read operation to occur on this pipe.</p>
+
+<p>This function will issue an asynchronous read to occur in an overlapped
+fashion, returning immediately. The <code>buf</code> provided will be filled in
+with data and the request is tracked by the <code>overlapped</code> function
+provided.</p>
+
+<p>If the operation succeeds immediately, <code>Ok(true)</code> is returned. If an
+asynchronous operation is enqueued, then <code>Ok(false)</code> is returned.
+Otherwise if an error occurred it is returned.</p>
+
+<p>When this operation completes (or if it completes immediately), another
+mechanism must be used to learn how many bytes were transferred (such as
+looking at the filed in the IOCP status message).</p>
+
+<h1 id="unsafety" class='section-header'><a
+                           href="#unsafety">Unsafety</a></h1>
+<p>This function is unsafe because the kernel requires that the <code>buf</code> and
+<code>overlapped</code> pointers to be valid until the end of the I/O operation.
+The kernel also requires that <code>overlapped</code> is unique for this I/O
+operation and is not in use for any other I/O.</p>
+
+<p>To safely use this function callers must ensure that the pointers are
+valid until the I/O operation is completed, typically via completion
+ports and waiting to receive the completion notification on the port.</p>
+</div><h4 id='method.write_overlapped' class='method'><code>unsafe fn <a href='#method.write_overlapped' class='fnname'>write_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, overlapped: &amp;mut OVERLAPPED) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;</code></h4>
+<div class='docblock'><p>Issues an overlapped write operation to occur on this pipe.</p>
+
+<p>This function will issue an asynchronous write to occur in an overlapped
+fashion, returning immediately. The <code>buf</code> provided will be filled in
+with data and the request is tracked by the <code>overlapped</code> function
+provided.</p>
+
+<p>If the operation succeeds immediately, <code>Ok(true)</code> is returned. If an
+asynchronous operation is enqueued, then <code>Ok(false)</code> is returned.
+Otherwise if an error occurred it is returned.</p>
+
+<p>When this operation completes (or if it completes immediately), another
+mechanism must be used to learn how many bytes were transferred (such as
+looking at the filed in the IOCP status message).</p>
+
+<h1 id="unsafety" class='section-header'><a
+                           href="#unsafety">Unsafety</a></h1>
+<p>This function is unsafe because the kernel requires that the <code>buf</code> and
+<code>overlapped</code> pointers to be valid until the end of the I/O operation.
+The kernel also requires that <code>overlapped</code> is unique for this I/O
+operation and is not in use for any other I/O.</p>
+
+<p>To safely use this function callers must ensure that the pointers are
+valid until the I/O operation is completed, typically via completion
+ports and waiting to receive the completion notification on the port.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a> for <a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a></code></h3><div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read' class='fnname'>read</a>(&amp;mut self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h4>
 <h4 id='method.read_to_end' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_end' class='fnname'>read_to_end</a>(&amp;mut self, buf: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt;</code></h4>
 <h4 id='method.read_to_string' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html#method.read_to_string' class='fnname'>read_to_string</a>(&amp;mut self, buf: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html' title='std::io::error::Error'>Error</a>&gt;</code></h4>
