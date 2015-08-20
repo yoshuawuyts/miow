@@ -181,6 +181,68 @@ impl NamedPipe {
             DisconnectNamedPipe(self.0.raw())
         }).map(|_| ())
     }
+
+    /// Issues an overlapped read operation to occur on this pipe.
+    ///
+    /// This function will issue an asynchronous read to occur in an overlapped
+    /// fashion, returning immediately. The `buf` provided will be filled in
+    /// with data and the request is tracked by the `overlapped` function
+    /// provided.
+    ///
+    /// If the operation succeeds immediately, `Ok(true)` is returned. If an
+    /// asynchronous operation is enqueued, then `Ok(false)` is returned.
+    /// Otherwise if an error occurred it is returned.
+    ///
+    /// When this operation completes (or if it completes immediately), another
+    /// mechanism must be used to learn how many bytes were transferred (such as
+    /// looking at the filed in the IOCP status message).
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe because the kernel requires that the `buf` and
+    /// `overlapped` pointers to be valid until the end of the I/O operation.
+    /// The kernel also requires that `overlapped` is unique for this I/O
+    /// operation and is not in use for any other I/O.
+    ///
+    /// To safely use this function callers must ensure that the pointers are
+    /// valid until the I/O operation is completed, typically via completion
+    /// ports and waiting to receive the completion notification on the port.
+    pub unsafe fn read_overlapped(&self, buf: &mut [u8],
+                                  overlapped: &mut OVERLAPPED)
+                                  -> io::Result<bool> {
+        self.0.read_overlapped(buf, overlapped)
+    }
+
+    /// Issues an overlapped write operation to occur on this pipe.
+    ///
+    /// This function will issue an asynchronous write to occur in an overlapped
+    /// fashion, returning immediately. The `buf` provided will be filled in
+    /// with data and the request is tracked by the `overlapped` function
+    /// provided.
+    ///
+    /// If the operation succeeds immediately, `Ok(true)` is returned. If an
+    /// asynchronous operation is enqueued, then `Ok(false)` is returned.
+    /// Otherwise if an error occurred it is returned.
+    ///
+    /// When this operation completes (or if it completes immediately), another
+    /// mechanism must be used to learn how many bytes were transferred (such as
+    /// looking at the filed in the IOCP status message).
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe because the kernel requires that the `buf` and
+    /// `overlapped` pointers to be valid until the end of the I/O operation.
+    /// The kernel also requires that `overlapped` is unique for this I/O
+    /// operation and is not in use for any other I/O.
+    ///
+    /// To safely use this function callers must ensure that the pointers are
+    /// valid until the I/O operation is completed, typically via completion
+    /// ports and waiting to receive the completion notification on the port.
+    pub unsafe fn write_overlapped(&self, buf: &[u8],
+                                   overlapped: &mut OVERLAPPED)
+                                   -> io::Result<bool> {
+        self.0.write_overlapped(buf, overlapped)
+    }
 }
 
 impl Read for NamedPipe {
@@ -423,6 +485,64 @@ mod tests {
         t!(a.write_all(&[1, 2, 3]));
         t!(a.flush());
         t!(a.disconnect());
+        t!(t.join());
+    }
+
+    #[test]
+    fn named_read_overlapped() {
+        let name = name();
+        let a = t!(NamedPipe::new(&name));
+
+        let t = thread::spawn(move || {
+            let mut f = t!(File::create(name));
+            t!(f.write_all(&[1, 2, 3]));
+        });
+
+        let cp = t!(CompletionPort::new(1));
+        t!(cp.add_handle(3, &a));
+        t!(a.connect());
+
+        let mut b = [0; 10];
+        unsafe {
+            let mut over: OVERLAPPED = mem::zeroed();
+            t!(a.read_overlapped(&mut b, &mut over));
+
+            let status = t!(cp.get(None));
+            assert_eq!(status.bytes_transferred(), 3);
+            assert_eq!(status.token(), 3);
+            assert_eq!(status.overlapped(), &mut over as *mut _);
+            assert_eq!(&b[..3], &[1, 2, 3])
+        }
+
+        t!(t.join());
+    }
+
+    #[test]
+    fn named_write_overlapped() {
+        let name = name();
+        let a = t!(NamedPipe::new(&name));
+
+        let t = thread::spawn(move || {
+            let mut f = t!(File::open(name));
+            let mut b = [0; 10];
+            assert_eq!(t!(f.read(&mut b)), 3);
+            assert_eq!(&b[..3], &[1, 2, 3])
+        });
+
+        let cp = t!(CompletionPort::new(1));
+        t!(cp.add_handle(3, &a));
+        t!(a.connect());
+
+        unsafe {
+            let mut over: OVERLAPPED = mem::zeroed();
+            t!(a.write_overlapped(&[1, 2, 3], &mut over));
+
+            let status = t!(cp.get(None));
+            assert_eq!(status.bytes_transferred(), 3);
+            assert_eq!(status.token(), 3);
+            assert_eq!(status.overlapped(), &mut over as *mut _);
+        }
+
         t!(t.join());
     }
 }
