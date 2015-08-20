@@ -4,6 +4,7 @@ use winapi::*;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
+#[derive(Debug)]
 pub struct Overlapped(OVERLAPPED);
 
 impl Overlapped {

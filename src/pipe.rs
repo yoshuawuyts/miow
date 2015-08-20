@@ -14,15 +14,19 @@ use handle::Handle;
 use Overlapped;
 
 /// Readable half of an anonymous pipe.
+#[derive(Debug)]
 pub struct AnonRead(Handle);
 
 /// Writable half of an anonymous pipe.
+#[derive(Debug)]
 pub struct AnonWrite(Handle);
 
 /// A named pipe that can accept connections.
+#[derive(Debug)]
 pub struct NamedPipe(Handle);
 
 /// A builder structure for creating a new named pipe.
+#[derive(Debug)]
 pub struct NamedPipeBuilder {
     name: Vec<u16>,
     dwOpenMode: DWORD,

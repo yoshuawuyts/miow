@@ -11,6 +11,7 @@ use kernel32::*;
 use Overlapped;
 
 /// A handle to an Windows I/O Completion Port.
+#[derive(Debug)]
 pub struct CompletionPort {
     handle: Handle,
 }

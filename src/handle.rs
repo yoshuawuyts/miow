@@ -1,9 +1,9 @@
-use std::mem;
 use std::io;
 
 use winapi::*;
 use kernel32::*;
 
+#[derive(Debug)]
 pub struct Handle(HANDLE);
 
 unsafe impl Send for Handle {}
@@ -16,7 +16,10 @@ impl Handle {
 
     pub fn raw(&self) -> HANDLE { self.0 }
 
+    #[cfg(feature = "unstable")]
     pub fn into_raw(self) -> HANDLE {
+        use std::mem;
+
         let ret = self.0;
         mem::forget(self);
         ret
