@@ -7,6 +7,9 @@ use winapi::*;
 #[derive(Debug)]
 pub struct Overlapped(OVERLAPPED);
 
+unsafe impl Send for Overlapped {}
+unsafe impl Sync for Overlapped {}
+
 impl Overlapped {
     /// Creates a new zeroed out instance of an overlapped I/O tracking state.
     ///

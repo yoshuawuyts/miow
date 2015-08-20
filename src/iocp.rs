@@ -24,6 +24,9 @@ pub struct CompletionPort {
 #[derive(Clone, Copy, Debug)]
 pub struct CompletionStatus(OVERLAPPED_ENTRY);
 
+unsafe impl Send for CompletionStatus {}
+unsafe impl Sync for CompletionStatus {}
+
 impl CompletionPort {
     /// Creates a new I/O completion port with the specified concurrency value.
     ///
