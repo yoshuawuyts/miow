@@ -54,8 +54,8 @@ impl CompletionPort {
     /// Any object which is convertible to a `HANDLE` via the `AsRawHandle`
     /// trait can be provided to this function, such as `std::fs::File` and
     /// friends.
-    pub fn add_handle<T: AsRawHandle>(&self, token: usize,
-                                      t: &T) -> io::Result<()> {
+    pub fn add_handle<T: AsRawHandle + ?Sized>(&self, token: usize,
+                                               t: &T) -> io::Result<()> {
         self._add(token, t.as_raw_handle())
     }
 
@@ -68,8 +68,8 @@ impl CompletionPort {
     /// Any object which is convertible to a `SOCKET` via the `AsRawSocket`
     /// trait can be provided to this function, such as `std::net::TcpStream`
     /// and friends.
-    pub fn add_socket<T: AsRawSocket>(&self, token: usize,
-                                      t: &T) -> io::Result<()> {
+    pub fn add_socket<T: AsRawSocket + ?Sized>(&self, token: usize,
+                                               t: &T) -> io::Result<()> {
         self._add(token, t.as_raw_socket() as HANDLE)
     }
 
