@@ -392,8 +392,8 @@
     <span class='doccomment'>/// Any object which is convertible to a `HANDLE` via the `AsRawHandle`</span>
     <span class='doccomment'>/// trait can be provided to this function, such as `std::fs::File` and</span>
     <span class='doccomment'>/// friends.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_handle</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>AsRawHandle</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>,
-                                      <span class='ident'>t</span>: <span class='kw-2'>&amp;</span><span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_handle</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>AsRawHandle</span> <span class='op'>+</span> ?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>,
+                                               <span class='ident'>t</span>: <span class='kw-2'>&amp;</span><span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>_add</span>(<span class='ident'>token</span>, <span class='ident'>t</span>.<span class='ident'>as_raw_handle</span>())
     }
 
@@ -406,8 +406,8 @@
     <span class='doccomment'>/// Any object which is convertible to a `SOCKET` via the `AsRawSocket`</span>
     <span class='doccomment'>/// trait can be provided to this function, such as `std::net::TcpStream`</span>
     <span class='doccomment'>/// and friends.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_socket</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>AsRawSocket</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>,
-                                      <span class='ident'>t</span>: <span class='kw-2'>&amp;</span><span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>add_socket</span><span class='op'>&lt;</span><span class='ident'>T</span>: <span class='ident'>AsRawSocket</span> <span class='op'>+</span> ?<span class='ident'>Sized</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>,
+                                               <span class='ident'>t</span>: <span class='kw-2'>&amp;</span><span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='self'>self</span>.<span class='ident'>_add</span>(<span class='ident'>token</span>, <span class='ident'>t</span>.<span class='ident'>as_raw_socket</span>() <span class='kw'>as</span> <span class='ident'>HANDLE</span>)
     }
 
