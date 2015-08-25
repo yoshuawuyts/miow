@@ -6,7 +6,6 @@ use std::io::prelude::*;
 use std::io;
 use std::os::windows::ffi::*;
 use std::os::windows::io::*;
-use std::time::Duration;
 
 use winapi::*;
 use kernel32::*;
@@ -120,7 +119,7 @@ fn _connect(addr: &OsStr) -> io::Result<File> {
             Err(e) => return Err(e),
         }
 
-        try!(NamedPipe::wait(addr, Some(Duration::new(20, 0))))
+        try!(NamedPipe::wait(addr, Some(20_000)));
     }
 }
 
@@ -152,14 +151,14 @@ impl NamedPipe {
     ///
     /// If this function succeeds the process can create a `File` to connect to
     /// the named pipe.
-    pub fn wait<A: AsRef<OsStr>>(addr: A, timeout: Option<Duration>)
+    pub fn wait<A: AsRef<OsStr>>(addr: A, timeout: Option<u32>)
                                  -> io::Result<()> {
         NamedPipe::_wait(addr.as_ref(), timeout)
     }
 
-    fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
+    fn _wait(addr: &OsStr, timeout: Option<u32>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
-        let timeout = timeout.map(::dur2timeout).unwrap_or(INFINITE);
+        let timeout = timeout.unwrap_or(INFINITE);
         ::cvt(unsafe {
             WaitNamedPipeW(addr.as_ptr(), timeout)
         }).map(|_| ())
@@ -412,7 +411,6 @@ mod tests {
     use std::io::prelude::*;
     use std::sync::mpsc::channel;
     use std::thread;
-    use std::time::Duration;
     use rand::{thread_rng, Rng};
 
     use super::{anonymous, NamedPipe, NamedPipeBuilder};
@@ -465,8 +463,7 @@ mod tests {
         let t = thread::spawn(move || {
             t!(NamedPipe::wait(&name, None));
             t!(File::open(&name));
-            let ms = Duration::new(0, 1_000_000);
-            assert!(NamedPipe::wait(&name, Some(ms)).is_err());
+            assert!(NamedPipe::wait(&name, Some(1)).is_err());
             t!(tx.send(()));
         });
 

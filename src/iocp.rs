@@ -3,7 +3,6 @@
 use std::io;
 use std::mem;
 use std::os::windows::io::*;
-use std::time::Duration;
 
 use handle::Handle;
 use winapi::*;
@@ -93,17 +92,17 @@ impl CompletionPort {
     /// semantics on when this function returns depends on the concurrency value
     /// specified when the port was created.
     ///
-    /// A timeout can optionally be specified to this function. If `None` is
-    /// provided this function will not time out, and otherwise it will time out
-    /// after the specified duration has passed.
+    /// A timeout (in milliseconds) can optionally be specified to this
+    /// function. If `None` is provided this function will not time out, and
+    /// otherwise it will time out after the specified duration has passed.
     ///
     /// On success this will return the status message which was dequeued from
     /// this completion port.
-    pub fn get(&self, timeout: Option<Duration>) -> io::Result<CompletionStatus> {
+    pub fn get(&self, timeout_ms: Option<u32>) -> io::Result<CompletionStatus> {
         let mut bytes = 0;
         let mut token = 0;
         let mut overlapped = 0 as *mut _;
-        let timeout = timeout.map(::dur2timeout).unwrap_or(INFINITE);
+        let timeout = timeout_ms.unwrap_or(INFINITE);
         let ret = unsafe {
             GetQueuedCompletionStatus(self.handle.raw(),
                                       &mut bytes,
@@ -132,13 +131,13 @@ impl CompletionPort {
     /// Like with `get`, a timeout may be specified for this operation.
     pub fn get_many<'a>(&self,
                         list: &'a mut [CompletionStatus],
-                        timeout: Option<Duration>)
+                        timeout_ms: Option<u32>)
                         -> io::Result<&'a mut [CompletionStatus]>
     {
         debug_assert_eq!(mem::size_of::<CompletionStatus>(),
                          mem::size_of::<OVERLAPPED_ENTRY>());
         let mut removed = 0;
-        let timeout = timeout.map(::dur2timeout).unwrap_or(INFINITE);
+        let timeout = timeout_ms.unwrap_or(INFINITE);
         let ret = unsafe {
             GetQueuedCompletionStatusEx(self.handle.raw(),
                                         list.as_ptr() as *mut _,
@@ -237,7 +236,6 @@ impl CompletionStatus {
 #[cfg(test)]
 mod tests {
     use std::mem;
-    use std::time::Duration;
     use winapi::*;
 
     use iocp::{CompletionPort, CompletionStatus};
@@ -256,7 +254,7 @@ mod tests {
     #[test]
     fn timeout() {
         let c = CompletionPort::new(1).unwrap();
-        let err = c.get(Some(Duration::new(0, 1_000_000))).unwrap_err();
+        let err = c.get(Some(1)).unwrap_err();
         assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as i32));
     }
 
