@@ -333,15 +333,12 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Bindings to IOCP, I/O Completion Ports</span>
 
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>io</span>::<span class='op'>*</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::<span class='ident'>Duration</span>;
 
 <span class='kw'>use</span> <span class='ident'>handle</span>::<span class='ident'>Handle</span>;
 <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
@@ -431,17 +428,17 @@
     <span class='doccomment'>/// semantics on when this function returns depends on the concurrency value</span>
     <span class='doccomment'>/// specified when the port was created.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// A timeout can optionally be specified to this function. If `None` is</span>
-    <span class='doccomment'>/// provided this function will not time out, and otherwise it will time out</span>
-    <span class='doccomment'>/// after the specified duration has passed.</span>
+    <span class='doccomment'>/// A timeout (in milliseconds) can optionally be specified to this</span>
+    <span class='doccomment'>/// function. If `None` is provided this function will not time out, and</span>
+    <span class='doccomment'>/// otherwise it will time out after the specified duration has passed.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// On success this will return the status message which was dequeued from</span>
     <span class='doccomment'>/// this completion port.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Duration</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>CompletionStatus</span><span class='op'>&gt;</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>timeout_ms</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>CompletionStatus</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>bytes</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>token</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>overlapped</span> <span class='op'>=</span> <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _;
-        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout</span>.<span class='ident'>map</span>(::<span class='ident'>dur2timeout</span>).<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
+        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout_ms</span>.<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
         <span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
             <span class='ident'>GetQueuedCompletionStatus</span>(<span class='self'>self</span>.<span class='ident'>handle</span>.<span class='ident'>raw</span>(),
                                       <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>bytes</span>,
@@ -470,13 +467,13 @@
     <span class='doccomment'>/// Like with `get`, a timeout may be specified for this operation.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>get_many</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>,
                         <span class='ident'>list</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>CompletionStatus</span>],
-                        <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Duration</span><span class='op'>&gt;</span>)
+                        <span class='ident'>timeout_ms</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span>)
                         <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> [<span class='ident'>CompletionStatus</span>]<span class='op'>&gt;</span>
     {
         <span class='macro'>debug_assert_eq</span><span class='macro'>!</span>(<span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>CompletionStatus</span><span class='op'>&gt;</span>(),
                          <span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>OVERLAPPED_ENTRY</span><span class='op'>&gt;</span>());
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>removed</span> <span class='op'>=</span> <span class='number'>0</span>;
-        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout</span>.<span class='ident'>map</span>(::<span class='ident'>dur2timeout</span>).<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
+        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout_ms</span>.<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
         <span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
             <span class='ident'>GetQueuedCompletionStatusEx</span>(<span class='self'>self</span>.<span class='ident'>handle</span>.<span class='ident'>raw</span>(),
                                         <span class='ident'>list</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
@@ -575,7 +572,6 @@
 <span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>test</span>)]</span>
 <span class='kw'>mod</span> <span class='ident'>tests</span> {
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
-    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::<span class='ident'>Duration</span>;
     <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 
     <span class='kw'>use</span> <span class='ident'>iocp</span>::{<span class='ident'>CompletionPort</span>, <span class='ident'>CompletionStatus</span>};
@@ -594,7 +590,7 @@
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>timeout</span>() {
         <span class='kw'>let</span> <span class='ident'>c</span> <span class='op'>=</span> <span class='ident'>CompletionPort</span>::<span class='ident'>new</span>(<span class='number'>1</span>).<span class='ident'>unwrap</span>();
-        <span class='kw'>let</span> <span class='ident'>err</span> <span class='op'>=</span> <span class='ident'>c</span>.<span class='ident'>get</span>(<span class='prelude-val'>Some</span>(<span class='ident'>Duration</span>::<span class='ident'>new</span>(<span class='number'>0</span>, <span class='number'>1_000_000</span>))).<span class='ident'>unwrap_err</span>();
+        <span class='kw'>let</span> <span class='ident'>err</span> <span class='op'>=</span> <span class='ident'>c</span>.<span class='ident'>get</span>(<span class='prelude-val'>Some</span>(<span class='number'>1</span>)).<span class='ident'>unwrap_err</span>();
         <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>err</span>.<span class='ident'>raw_os_error</span>(), <span class='prelude-val'>Some</span>(<span class='ident'>WAIT_TIMEOUT</span> <span class='kw'>as</span> <span class='ident'>i32</span>));
     }
 

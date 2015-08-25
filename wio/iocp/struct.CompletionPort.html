@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-535' class='srclink' href='../../src/wio/iocp.rs.html#15-17' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-533' class='srclink' href='../../src/wio/iocp.rs.html#14-16' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct CompletionPort {
     // some fields omitted
 }</pre><div class='docblock'><p>A handle to an Windows I/O Completion Port.</p>
@@ -75,7 +75,7 @@ notification.</p>
 <p>Any object which is convertible to a <code>SOCKET</code> via the <code>AsRawSocket</code>
 trait can be provided to this function, such as <code>std::net::TcpStream</code>
 and friends.</p>
-</div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, timeout: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/time/duration/struct.Duration.html' title='std::time::duration::Duration'>Duration</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a>&gt;</code></h4>
+</div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, timeout_ms: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a>&gt;</code></h4>
 <div class='docblock'><p>Dequeue a completion status from this I/O completion port.</p>
 
 <p>This function will associate the calling thread with this completion
@@ -83,13 +83,13 @@ port and then wait for a status message to become available. The precise
 semantics on when this function returns depends on the concurrency value
 specified when the port was created.</p>
 
-<p>A timeout can optionally be specified to this function. If <code>None</code> is
-provided this function will not time out, and otherwise it will time out
-after the specified duration has passed.</p>
+<p>A timeout (in milliseconds) can optionally be specified to this
+function. If <code>None</code> is provided this function will not time out, and
+otherwise it will time out after the specified duration has passed.</p>
 
 <p>On success this will return the status message which was dequeued from
 this completion port.</p>
-</div><h4 id='method.get_many' class='method'><code>fn <a href='#method.get_many' class='fnname'>get_many</a>&lt;'a&gt;(&amp;self, list: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, timeout: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/time/duration/struct.Duration.html' title='std::time::duration::Duration'>Duration</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</code></h4>
+</div><h4 id='method.get_many' class='method'><code>fn <a href='#method.get_many' class='fnname'>get_many</a>&lt;'a&gt;(&amp;self, list: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, timeout_ms: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</code></h4>
 <div class='docblock'><p>Dequeues a number of completion statuses from this I/O completion port.</p>
 
 <p>This function is the same as <code>get</code> except that it may return more than

@@ -619,9 +619,6 @@
 <span id="577">577</span>
 <span id="578">578</span>
 <span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Named pipes</span>
 
@@ -631,7 +628,6 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>ffi</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>io</span>::<span class='op'>*</span>;
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::<span class='ident'>Duration</span>;
 
 <span class='kw'>use</span> <span class='ident'>winapi</span>::<span class='op'>*</span>;
 <span class='kw'>use</span> <span class='ident'>kernel32</span>::<span class='op'>*</span>;
@@ -745,7 +741,7 @@
             <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>),
         }
 
-        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>wait</span>(<span class='ident'>addr</span>, <span class='prelude-val'>Some</span>(<span class='ident'>Duration</span>::<span class='ident'>new</span>(<span class='number'>20</span>, <span class='number'>0</span>))))
+        <span class='macro'>try</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>wait</span>(<span class='ident'>addr</span>, <span class='prelude-val'>Some</span>(<span class='number'>20_000</span>)));
     }
 }
 
@@ -777,14 +773,14 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If this function succeeds the process can create a `File` to connect to</span>
     <span class='doccomment'>/// the named pipe.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>wait</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>AsRef</span><span class='op'>&lt;</span><span class='ident'>OsStr</span><span class='op'>&gt;&gt;</span>(<span class='ident'>addr</span>: <span class='ident'>A</span>, <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Duration</span><span class='op'>&gt;</span>)
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>wait</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>AsRef</span><span class='op'>&lt;</span><span class='ident'>OsStr</span><span class='op'>&gt;&gt;</span>(<span class='ident'>addr</span>: <span class='ident'>A</span>, <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='ident'>NamedPipe</span>::<span class='ident'>_wait</span>(<span class='ident'>addr</span>.<span class='ident'>as_ref</span>(), <span class='ident'>timeout</span>)
     }
 
-    <span class='kw'>fn</span> <span class='ident'>_wait</span>(<span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>OsStr</span>, <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Duration</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+    <span class='kw'>fn</span> <span class='ident'>_wait</span>(<span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='ident'>OsStr</span>, <span class='ident'>timeout</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>u32</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
         <span class='kw'>let</span> <span class='ident'>addr</span> <span class='op'>=</span> <span class='ident'>addr</span>.<span class='ident'>encode_wide</span>().<span class='ident'>chain</span>(<span class='prelude-val'>Some</span>(<span class='number'>0</span>)).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>();
-        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout</span>.<span class='ident'>map</span>(::<span class='ident'>dur2timeout</span>).<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
+        <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout</span>.<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
         ::<span class='ident'>cvt</span>(<span class='kw'>unsafe</span> {
             <span class='ident'>WaitNamedPipeW</span>(<span class='ident'>addr</span>.<span class='ident'>as_ptr</span>(), <span class='ident'>timeout</span>)
         }).<span class='ident'>map</span>(<span class='op'>|</span>_<span class='op'>|</span> ())
@@ -1037,7 +1033,6 @@
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>mpsc</span>::<span class='ident'>channel</span>;
     <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>thread</span>;
-    <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>time</span>::<span class='ident'>Duration</span>;
     <span class='kw'>use</span> <span class='ident'>rand</span>::{<span class='ident'>thread_rng</span>, <span class='ident'>Rng</span>};
 
     <span class='kw'>use</span> <span class='ident'>super</span>::{<span class='ident'>anonymous</span>, <span class='ident'>NamedPipe</span>, <span class='ident'>NamedPipeBuilder</span>};
@@ -1090,8 +1085,7 @@
         <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>wait</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>, <span class='prelude-val'>None</span>));
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>File</span>::<span class='ident'>open</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>));
-            <span class='kw'>let</span> <span class='ident'>ms</span> <span class='op'>=</span> <span class='ident'>Duration</span>::<span class='ident'>new</span>(<span class='number'>0</span>, <span class='number'>1_000_000</span>);
-            <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>wait</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>, <span class='prelude-val'>Some</span>(<span class='ident'>ms</span>)).<span class='ident'>is_err</span>());
+            <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>wait</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>, <span class='prelude-val'>Some</span>(<span class='number'>1</span>)).<span class='ident'>is_err</span>());
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>tx</span>.<span class='ident'>send</span>(()));
         });
 
