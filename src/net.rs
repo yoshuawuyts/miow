@@ -119,6 +119,16 @@ pub trait TcpStreamExt {
     unsafe fn write_overlapped(&self,
                                buf: &[u8],
                                overlapped: &mut Overlapped) -> io::Result<bool>;
+
+    /// Execute a connection operation for this socket.
+    ///
+    /// For more information about this method, see the
+    /// [`TcpBuilderExt::connect_overlapped`][link] documentation.
+    ///
+    /// [link]: trait.TcpBuilderExt.html#tymethod.connect_overlapped
+    unsafe fn connect_overlapped(&self, addr: &SocketAddr,
+                                 overlapped: &mut Overlapped)
+                                 -> io::Result<bool>;
 }
 
 /// Additional methods for the `UdpSocket` type in the standard library.
@@ -358,6 +368,41 @@ impl TcpStreamExt for TcpStream {
                         0 as *mut _, 0, overlapped.raw(), None);
         cvt(r)
     }
+
+    unsafe fn connect_overlapped(&self, addr: &SocketAddr,
+                                 overlapped: &mut Overlapped)
+                                 -> io::Result<bool> {
+        connect_overlapped(self.as_raw_socket(), addr, overlapped)
+    }
+}
+
+unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr,
+                             overlapped: &mut Overlapped) -> io::Result<bool> {
+    static CONNECTEX: WsaExtension = WsaExtension {
+        guid: GUID {
+            Data1: 0x25a207b9,
+            Data2: 0xddf3,
+            Data3: 0x4660,
+            Data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
+        },
+        val: ATOMIC_USIZE_INIT,
+    };
+    type ConnectEx = unsafe extern "system" fn(SOCKET, *const sockaddr,
+                                               c_int, PVOID, DWORD, LPDWORD,
+                                               LPOVERLAPPED) -> BOOL;
+
+    let ptr = try!(CONNECTEX.get(socket));
+    assert!(ptr != 0);
+    let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
+
+    let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
+    let r = connect_ex(socket, addr_buf, addr_len,
+                       0 as *mut _, 0, 0 as *mut _, overlapped.raw());
+    if r == TRUE {
+        Ok(true)
+    } else {
+        last_err()
+    }
 }
 
 impl UdpSocketExt for UdpSocket {
@@ -401,33 +446,9 @@ impl TcpBuilderExt for TcpBuilder {
     unsafe fn connect_overlapped(&self, addr: &SocketAddr,
                                  overlapped: &mut Overlapped)
                                  -> io::Result<(TcpStream, bool)> {
-        static CONNECTEX: WsaExtension = WsaExtension {
-            guid: GUID {
-                Data1: 0x25a207b9,
-                Data2: 0xddf3,
-                Data3: 0x4660,
-                Data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
-            },
-            val: ATOMIC_USIZE_INIT,
-        };
-        type ConnectEx = unsafe extern "system" fn(SOCKET, *const sockaddr,
-                                                   c_int, PVOID, DWORD, LPDWORD,
-                                                   LPOVERLAPPED) -> BOOL;
-
-        let ptr = try!(CONNECTEX.get(self.as_raw_socket()));
-        assert!(ptr != 0);
-        let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
-
-        let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
-        let r = connect_ex(self.as_raw_socket(), addr_buf, addr_len,
-                           0 as *mut _, 0, 0 as *mut _, overlapped.raw());
-        let succeeded = if r == TRUE {
-            true
-        } else {
-            try!(last_err())
-        };
-        let stream = try!(self.to_tcp_stream());
-        Ok((stream, succeeded))
+        connect_overlapped(self.as_raw_socket(), addr, overlapped).map(|s| {
+            (self.to_tcp_stream().unwrap(), s)
+        })
     }
 }
 
