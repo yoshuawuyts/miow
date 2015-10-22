@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>net</a></p><script>window.sidebarCurrent = {name: 'TcpBuilderExt', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1444' class='srclink' href='../../src/wio/net.rs.html#203-232' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-259' class='srclink' href='../../src/wio/net.rs.html#203-232' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait TcpBuilderExt {
     unsafe fn <a href='#tymethod.connect_overlapped' class='fnname'>connect_overlapped</a>(&amp;self, addr: &amp;<a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(<a class='struct' href='https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html' title='std::net::tcp::TcpStream'>TcpStream</a>, <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>)</a>&gt;;
 }</pre><div class='docblock'><p>Additional methods for the <code>TcpBuilder</code> type in the <code>net2</code> library.</p>
@@ -67,8 +67,7 @@ pending and will complete at a later date.</p>
 <p>Note that to succeed this requires that the underlying socket has
 previously been bound via a call to <code>bind</code> to a local address.</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the
 <code>overlapped</code> pointer is valid until the end of the I/O operation. The
 kernel also requires that <code>overlapped</code> is unique for this I/O operation
@@ -80,7 +79,7 @@ ports and waiting to receive the completion notification on the port.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../wio/net/trait.TcpBuilderExt.html' title='wio::net::TcpBuilderExt'>TcpBuilderExt</a> for <a class='struct' href='http://alexcrichton.com/net2-rs/net2/tcp/struct.TcpBuilder.html' title='net2::tcp::TcpBuilder'>TcpBuilder</a></code></li>
+    <li><code>impl <a class='trait' href='../../wio/net/trait.TcpBuilderExt.html' title='wio::net::TcpBuilderExt'>TcpBuilderExt</a> for <a class='struct' href='https://doc.rust-lang.org/net2-rs/net2/tcp/struct.TcpBuilder.html' title='net2::tcp::TcpBuilder'>TcpBuilder</a></code></li>
 </ul><script type="text/javascript" async
                               src="../../implementors/wio/net/trait.TcpBuilderExt.js">
                       </script></section>
@@ -88,10 +87,12 @@ ports and waiting to receive the completion notification on the port.</p>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -108,7 +109,7 @@ ports and waiting to receive the completion notification on the port.</p>
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -128,7 +129,7 @@ ports and waiting to receive the completion notification on the port.</p>
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 

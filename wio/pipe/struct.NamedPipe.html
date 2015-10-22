@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>pipe</a></p><script>window.sidebarCurrent = {name: 'NamedPipe', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-3370' class='srclink' href='../../src/wio/pipe.rs.html#25' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-524' class='srclink' href='../../src/wio/pipe.rs.html#25' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct NamedPipe(_);</pre><div class='docblock'><p>A named pipe that can accept connections.</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;A: <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html' title='std::ffi::os_str::OsStr'>OsStr</a>&gt;&gt;(addr: A) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../wio/pipe/struct.NamedPipe.html' title='wio::pipe::NamedPipe'>NamedPipe</a>&gt;</code></h4>
 <div class='docblock'><p>Creates a new initial named pipe.</p>
@@ -84,8 +84,7 @@ returning immediately after starting the overlapped operation.</p>
 the overlapped operation is enqueued and pending, then <code>Ok(false)</code> is
 returned. Otherwise an error is returned indicating what went wrong.</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the
 <code>overlapped</code> pointer is valid until the end of the I/O operation. The
 kernel also requires that <code>overlapped</code> is unique for this I/O operation
@@ -112,8 +111,7 @@ Otherwise if an error occurred it is returned.</p>
 mechanism must be used to learn how many bytes were transferred (such as
 looking at the filed in the IOCP status message).</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the <code>buf</code> and
 <code>overlapped</code> pointers to be valid until the end of the I/O operation.
 The kernel also requires that <code>overlapped</code> is unique for this I/O
@@ -138,8 +136,7 @@ Otherwise if an error occurred it is returned.</p>
 mechanism must be used to learn how many bytes were transferred (such as
 looking at the filed in the IOCP status message).</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the <code>buf</code> and
 <code>overlapped</code> pointers to be valid until the end of the I/O operation.
 The kernel also requires that <code>overlapped</code> is unique for this I/O
@@ -189,10 +186,12 @@ ports and waiting to receive the completion notification on the port.</p>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -209,7 +208,7 @@ ports and waiting to receive the completion notification on the port.</p>
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -229,7 +228,7 @@ ports and waiting to receive the completion notification on the port.</p>
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 

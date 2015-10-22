@@ -24,10 +24,10 @@
 
     
 
-    <section class="sidebar">
+    <nav class="sidebar">
         
         <p class='location'><a href='../index.html'>wio</a>::<wbr><a href='index.html'>net</a></p><script>window.sidebarCurrent = {name: 'UdpSocketExt', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
-    </section>
+    </nav>
 
     <nav class="sub">
         <form class="search-form js-only">
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-1402' class='srclink' href='../../src/wio/net.rs.html#135-200' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-248' class='srclink' href='../../src/wio/net.rs.html#135-200' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait UdpSocketExt {
     unsafe fn <a href='#tymethod.recv_from_overlapped' class='fnname'>recv_from_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, addr: &amp;mut <a class='struct' href='../../wio/net/struct.SocketAddrBuf.html' title='wio::net::SocketAddrBuf'>SocketAddrBuf</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
     unsafe fn <a href='#tymethod.send_to_overlapped' class='fnname'>send_to_overlapped</a>(&amp;self, buf: <a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, addr: &amp;<a class='enum' href='https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html' title='std::net::addr::SocketAddr'>SocketAddr</a>, overlapped: &amp;mut <a class='struct' href='../../wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>&gt;;
@@ -69,8 +69,7 @@ operation is returned and no overlapped operation is enqueued.</p>
 <p>The number of bytes read will be returned as part of the completion
 notification when the I/O finishes.</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the <code>buf</code>,
 <code>addr</code>, and <code>overlapped</code> pointers are valid until the end of the I/O
 operation. The kernel also requires that <code>overlapped</code> is unique for this
@@ -95,8 +94,7 @@ operation is returned and no overlapped operation is enqueued.</p>
 <p>The number of bytes written will be returned as part of the completion
 notification when the I/O finishes.</p>
 
-<h1 id="unsafety" class='section-header'><a
-                           href="#unsafety">Unsafety</a></h1>
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the <code>buf</code> and
 <code>overlapped</code> pointers are valid until the end of the I/O operation. The
 kernel also requires that <code>overlapped</code> is unique for this I/O operation
@@ -117,10 +115,12 @@ the port.</p>
 
     <section class="footer"></section>
 
-    <div id="help" class="hidden">
+    <aside id="help" class="hidden">
         <div>
+            <h1 class="hidden">Help</h1>
+
             <div class="shortcuts">
-                <h1>Keyboard Shortcuts</h1>
+                <h2>Keyboard Shortcuts</h2>
 
                 <dl>
                     <dt>?</dt>
@@ -137,7 +137,7 @@ the port.</p>
             </div>
 
             <div class="infos">
-                <h1>Search Tricks</h1>
+                <h2>Search Tricks</h2>
 
                 <p>
                     Prefix searches with a type followed by a colon (e.g.
@@ -157,7 +157,7 @@ the port.</p>
                 </p>
             </div>
         </div>
-    </div>
+    </aside>
 
     
 
