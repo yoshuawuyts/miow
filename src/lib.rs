@@ -4,7 +4,7 @@
 #![cfg(windows)]
 #![deny(missing_docs)]
 #![allow(bad_style)]
-#![doc(html_root_url = "http://alexcrichton.com/wio")]
+#![doc(html_root_url = "http://alexcrichton.com/miow")]
 
 extern crate kernel32;
 extern crate libc;

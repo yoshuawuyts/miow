@@ -129,7 +129,7 @@ impl NamedPipe {
     /// This function is equivalent to:
     ///
     /// ```
-    /// use wio::pipe::NamedPipeBuilder;
+    /// use miow::pipe::NamedPipeBuilder;
     ///
     /// # let addr = "foo";
     /// NamedPipeBuilder::new(addr)
