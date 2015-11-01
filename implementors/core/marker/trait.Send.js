@@ -1,5 +1,5 @@
 (function() {var implementors = {};
-implementors['wio'] = ["impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='wio/struct.Overlapped.html' title='wio::Overlapped'>Overlapped</a>","impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='wio/iocp/struct.CompletionStatus.html' title='wio::iocp::CompletionStatus'>CompletionStatus</a>",];
+implementors['miow'] = ["impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a>","impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Send.html' title='core::marker::Send'>Send</a> for <a class='struct' href='miow/iocp/struct.CompletionStatus.html' title='miow::iocp::CompletionStatus'>CompletionStatus</a>",];
 
             if (window.register_implementors) {
                 window.register_implementors(implementors);

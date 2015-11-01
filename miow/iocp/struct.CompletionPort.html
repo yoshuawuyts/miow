@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `CompletionPort` struct in crate `miow`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, CompletionPort">
+
+    <title>miow::iocp::CompletionPort - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>miow</a>::<wbr><a href='index.html'>iocp</a></p><script>window.sidebarCurrent = {name: 'CompletionPort', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>miow</a>::<wbr><a href='index.html'>iocp</a>::<wbr><a class='struct' href=''>CompletionPort</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-101' class='srclink' href='../../src/miow/iocp.rs.html#14-16' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct CompletionPort {
+    // some fields omitted
+}</pre><div class='docblock'><p>A handle to an Windows I/O Completion Port.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(threads: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a>&gt;</code></h4>
+<div class='docblock'><p>Creates a new I/O completion port with the specified concurrency value.</p>
+
+<p>The number of threads given corresponds to the level of concurrency
+allowed for threads associated with this port. Consult the Windows
+documentation for more information about this value.</p>
+</div><h4 id='method.add_handle' class='method'><code>fn <a href='#method.add_handle' class='fnname'>add_handle</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawHandle.html' title='std::sys::ext::io::AsRawHandle'>AsRawHandle</a> + ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;self, token: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, t: &amp;T) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Associates a new <code>HANDLE</code> to this I/O completion port.</p>
+
+<p>This function will associate the given handle to this port with the
+given <code>token</code> to be returned in status messages whenever it receives a
+notification.</p>
+
+<p>Any object which is convertible to a <code>HANDLE</code> via the <code>AsRawHandle</code>
+trait can be provided to this function, such as <code>std::fs::File</code> and
+friends.</p>
+</div><h4 id='method.add_socket' class='method'><code>fn <a href='#method.add_socket' class='fnname'>add_socket</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawSocket.html' title='std::sys::ext::io::AsRawSocket'>AsRawSocket</a> + ?<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html' title='core::marker::Sized'>Sized</a>&gt;(&amp;self, token: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, t: &amp;T) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Associates a new <code>SOCKET</code> to this I/O completion port.</p>
+
+<p>This function will associate the given socket to this port with the
+given <code>token</code> to be returned in status messages whenever it receives a
+notification.</p>
+
+<p>Any object which is convertible to a <code>SOCKET</code> via the <code>AsRawSocket</code>
+trait can be provided to this function, such as <code>std::net::TcpStream</code>
+and friends.</p>
+</div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, timeout_ms: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../../miow/iocp/struct.CompletionStatus.html' title='miow::iocp::CompletionStatus'>CompletionStatus</a>&gt;</code></h4>
+<div class='docblock'><p>Dequeue a completion status from this I/O completion port.</p>
+
+<p>This function will associate the calling thread with this completion
+port and then wait for a status message to become available. The precise
+semantics on when this function returns depends on the concurrency value
+specified when the port was created.</p>
+
+<p>A timeout (in milliseconds) can optionally be specified to this
+function. If <code>None</code> is provided this function will not time out, and
+otherwise it will time out after the specified duration has passed.</p>
+
+<p>On success this will return the status message which was dequeued from
+this completion port.</p>
+</div><h4 id='method.get_many' class='method'><code>fn <a href='#method.get_many' class='fnname'>get_many</a>&lt;'a&gt;(&amp;self, list: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../miow/iocp/struct.CompletionStatus.html' title='miow::iocp::CompletionStatus'>CompletionStatus</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, timeout_ms: <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>&gt;) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a mut [</a><a class='struct' href='../../miow/iocp/struct.CompletionStatus.html' title='miow::iocp::CompletionStatus'>CompletionStatus</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt;</code></h4>
+<div class='docblock'><p>Dequeues a number of completion statuses from this I/O completion port.</p>
+
+<p>This function is the same as <code>get</code> except that it may return more than
+one status. A buffer of &quot;zero&quot; statuses is provided (the contents are
+not read) and then on success this function will return a sub-slice of
+statuses which represent those which were dequeued from this port. This
+function does not wait to fill up the entire list of statuses provided.</p>
+
+<p>Like with <code>get</code>, a timeout may be specified for this operation.</p>
+</div><h4 id='method.post' class='method'><code>fn <a href='#method.post' class='fnname'>post</a>(&amp;self, status: <a class='struct' href='../../miow/iocp/struct.CompletionStatus.html' title='miow::iocp::CompletionStatus'>CompletionStatus</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Posts a new completion status onto this I/O completion port.</p>
+
+<p>This function will post the given status, with custom parameters, to the
+port. Threads blocked in <code>get</code> or <code>get_many</code> will eventually receive
+this status.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawHandle.html' title='std::sys::ext::io::AsRawHandle'>AsRawHandle</a> for <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h3><div class='impl-items'><h4 id='method.as_raw_handle' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.AsRawHandle.html#method.as_raw_handle' class='fnname'>as_raw_handle</a>(&amp;self) -&gt; HANDLE</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.FromRawHandle.html' title='std::sys::ext::io::FromRawHandle'>FromRawHandle</a> for <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h3><div class='impl-items'><h4 id='method.from_raw_handle' class='method'><code>unsafe fn <a href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.FromRawHandle.html#method.from_raw_handle' class='fnname'>from_raw_handle</a>(handle: HANDLE) -&gt; <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.IntoRawHandle.html' title='std::sys::ext::io::IntoRawHandle'>IntoRawHandle</a> for <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h3><div class='impl-items'><h4 id='method.into_raw_handle' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/sys/ext/io/trait.IntoRawHandle.html#method.into_raw_handle' class='fnname'>into_raw_handle</a>(self) -&gt; HANDLE</code></h4>
+</div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../../miow/iocp/struct.CompletionPort.html' title='miow::iocp::CompletionPort'>CompletionPort</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "miow";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>
