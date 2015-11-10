@@ -15,9 +15,9 @@ abstractions.
 
 [dependencies]
 winapi = "0.2"
-kernel32-sys = "0.1"
-ws2_32-sys = "0.1"
-libc = "0.1"
+kernel32-sys = "0.2"
+ws2_32-sys = "0.2"
+libc = "0.2"
 net2 = { version = "0.2.5", default-features = false }
 
 [dev-dependencies]

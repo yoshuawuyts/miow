@@ -10,7 +10,6 @@ use std::net::{TcpStream, UdpSocket, SocketAddr, TcpListener};
 use std::net::{SocketAddrV4, Ipv4Addr, SocketAddrV6, Ipv6Addr};
 use std::os::windows::prelude::*;
 
-use libc::{sockaddr, sockaddr_in, sockaddr_in6};
 use net2::TcpBuilder;
 use winapi::*;
 use ws2_32::*;
@@ -299,10 +298,10 @@ fn cvt(i: c_int) -> io::Result<bool> {
     }
 }
 
-fn socket_addr_to_ptrs(addr: &SocketAddr) -> (*const sockaddr, c_int) {
+fn socket_addr_to_ptrs(addr: &SocketAddr) -> (*const SOCKADDR, c_int) {
     match *addr {
         SocketAddr::V4(ref a) => {
-            (a as *const _ as *const _, mem::size_of::<sockaddr_in>() as c_int)
+            (a as *const _ as *const _, mem::size_of::<SOCKADDR_IN>() as c_int)
         }
         SocketAddr::V6(ref a) => {
             (a as *const _ as *const _, mem::size_of::<sockaddr_in6>() as c_int)
@@ -312,14 +311,13 @@ fn socket_addr_to_ptrs(addr: &SocketAddr) -> (*const sockaddr, c_int) {
 
 unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR,
                               len: c_int) -> Option<SocketAddr> {
-    use libc::{sockaddr_in, sockaddr_in6, sa_family_t};
-    if (len as usize) < mem::size_of::<sa_family_t>() {
+    if (len as usize) < mem::size_of::<c_int>() {
         return None
     }
     match (*ptr).sa_family as i32 {
-        AF_INET if len as usize >= mem::size_of::<sockaddr_in>() => {
-            let b = &*(ptr as *const sockaddr_in);
-            let ip = ntoh(b.sin_addr.s_addr);
+        AF_INET if len as usize >= mem::size_of::<SOCKADDR_IN>() => {
+            let b = &*(ptr as *const SOCKADDR_IN);
+            let ip = ntoh(b.sin_addr.S_un);
             let ip = Ipv4Addr::new((ip >> 24) as u8,
                                    (ip >> 16) as u8,
                                    (ip >>  8) as u8,
@@ -328,14 +326,16 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR,
         }
         AF_INET6 if len as usize >= mem::size_of::<sockaddr_in6>() => {
             let b = &*(ptr as *const sockaddr_in6);
-            let ip = Ipv6Addr::new(ntoh(b.sin6_addr.s6_addr[0]),
-                                   ntoh(b.sin6_addr.s6_addr[1]),
-                                   ntoh(b.sin6_addr.s6_addr[2]),
-                                   ntoh(b.sin6_addr.s6_addr[3]),
-                                   ntoh(b.sin6_addr.s6_addr[4]),
-                                   ntoh(b.sin6_addr.s6_addr[5]),
-                                   ntoh(b.sin6_addr.s6_addr[6]),
-                                   ntoh(b.sin6_addr.s6_addr[7]));
+            let arr = &b.sin6_addr.s6_addr;
+            let ip = Ipv6Addr::new(
+                ((arr[0] as u16) << 8) | (arr[1] as u16),
+                ((arr[2] as u16) << 8) | (arr[3] as u16),
+                ((arr[4] as u16) << 8) | (arr[5] as u16),
+                ((arr[6] as u16) << 8) | (arr[7] as u16),
+                ((arr[8] as u16) << 8) | (arr[9] as u16),
+                ((arr[10] as u16) << 8) | (arr[11] as u16),
+                ((arr[12] as u16) << 8) | (arr[13] as u16),
+                ((arr[14] as u16) << 8) | (arr[15] as u16));
             let addr = SocketAddrV6::new(ip, ntoh(b.sin6_port),
                                          ntoh(b.sin6_flowinfo),
                                          ntoh(b.sin6_scope_id));
@@ -387,7 +387,7 @@ unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr,
         },
         val: ATOMIC_USIZE_INIT,
     };
-    type ConnectEx = unsafe extern "system" fn(SOCKET, *const sockaddr,
+    type ConnectEx = unsafe extern "system" fn(SOCKET, *const SOCKADDR,
                                                c_int, PVOID, DWORD, LPDWORD,
                                                LPOVERLAPPED) -> BOOL;
 
