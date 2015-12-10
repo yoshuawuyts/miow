@@ -95,7 +95,7 @@ operation is returned and no overlapped operation is enqueued.</p>
 <p>The number of bytes written will be returned as part of the completion
 notification when the I/O finishes.</p>
 
-<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
+<h1 id='unsafety-1' class='section-header'><a href='#unsafety-1'>Unsafety</a></h1>
 <p>This function is unsafe because the kernel requires that the <code>buf</code> and
 <code>overlapped</code> pointers are valid until the end of the I/O operation. The
 kernel also requires that <code>overlapped</code> is unique for this I/O operation
