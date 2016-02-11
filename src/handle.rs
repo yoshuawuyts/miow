@@ -16,7 +16,6 @@ impl Handle {
 
     pub fn raw(&self) -> HANDLE { self.0 }
 
-    #[cfg(feature = "unstable")]
     pub fn into_raw(self) -> HANDLE {
         use std::mem;
 

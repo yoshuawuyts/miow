@@ -180,7 +180,6 @@ impl FromRawHandle for CompletionPort {
     }
 }
 
-#[cfg(feature = "unstable")]
 impl IntoRawHandle for CompletionPort {
     fn into_raw_handle(self) -> HANDLE {
         self.handle.into_raw()

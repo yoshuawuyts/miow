@@ -66,7 +66,6 @@ impl FromRawHandle for AnonRead {
         AnonRead(Handle::new(handle))
     }
 }
-#[cfg(feature = "unstable")]
 impl IntoRawHandle for AnonRead {
     fn into_raw_handle(self) -> HANDLE { self.0.into_raw() }
 }

@@ -1,13 +1,11 @@
 //! A zero overhead Windows I/O library
 
-#![cfg_attr(feature = "unstable", feature(into_raw_os))]
 #![cfg(windows)]
 #![deny(missing_docs)]
 #![allow(bad_style)]
 #![doc(html_root_url = "http://alexcrichton.com/miow")]
 
 extern crate kernel32;
-extern crate libc;
 extern crate net2;
 extern crate winapi;
 extern crate ws2_32;
