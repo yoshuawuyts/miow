@@ -87,7 +87,6 @@ impl FromRawHandle for AnonWrite {
         AnonWrite(Handle::new(handle))
     }
 }
-#[cfg(feature = "unstable")]
 impl IntoRawHandle for AnonWrite {
     fn into_raw_handle(self) -> HANDLE { self.0.into_raw() }
 }
@@ -307,7 +306,6 @@ impl FromRawHandle for NamedPipe {
         NamedPipe(Handle::new(handle))
     }
 }
-#[cfg(feature = "unstable")]
 impl IntoRawHandle for NamedPipe {
     fn into_raw_handle(self) -> HANDLE { self.0.into_raw() }
 }
