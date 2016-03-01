@@ -849,16 +849,13 @@
 <span id="806">806</span>
 <span id="807">807</span>
 <span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Extensions and types for the standard networking primitives.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! This module contains a number of extension traits for the types in</span>
 <span class='doccomment'>//! `std::net` for Windows-specific functionality.</span>
 
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cmp</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>sync</span>::<span class='ident'>atomic</span>::{<span class='ident'>AtomicUsize</span>, <span class='ident'>Ordering</span>, <span class='ident'>ATOMIC_USIZE_INIT</span>};
@@ -1201,13 +1198,17 @@
     }
 }
 
+<span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>slice2buf</span>(<span class='ident'>slice</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>]) <span class='op'>-&gt;</span> <span class='ident'>WSABUF</span> {
+    <span class='ident'>WSABUF</span> {
+        <span class='ident'>len</span>: <span class='ident'>cmp</span>::<span class='ident'>min</span>(<span class='ident'>slice</span>.<span class='ident'>len</span>(), <span class='op'>&lt;</span><span class='ident'>u_long</span><span class='op'>&gt;</span>::<span class='ident'>max_value</span>() <span class='kw'>as</span> <span class='ident'>usize</span>) <span class='kw'>as</span> <span class='ident'>u_long</span>,
+        <span class='ident'>buf</span>: <span class='ident'>slice</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
+    }
+}
+
 <span class='kw'>impl</span> <span class='ident'>TcpStreamExt</span> <span class='kw'>for</span> <span class='ident'>TcpStream</span> {
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>read_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>u8</span>],
                               <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
-            <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
-            <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_mut_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-        };
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>slice2buf</span>(<span class='ident'>buf</span>);
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>flags</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSARecv</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
                         <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
@@ -1216,10 +1217,7 @@
 
     <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>write_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>buf</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>u8</span>],
                                <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
-            <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
-            <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-        };
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>slice2buf</span>(<span class='ident'>buf</span>);
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSASend</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
                         <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>, <span class='ident'>overlapped</span>.<span class='ident'>raw</span>(), <span class='prelude-val'>None</span>);
         <span class='ident'>cvt</span>(<span class='ident'>r</span>)
@@ -1267,10 +1265,7 @@
                                    <span class='ident'>addr</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>SocketAddrBuf</span>,
                                    <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                    <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
-            <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
-            <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_mut_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-        };
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>slice2buf</span>(<span class='ident'>buf</span>);
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>flags</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSARecvFrom</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
                             <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>flags</span>,
@@ -1286,10 +1281,7 @@
                                  <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                  <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>let</span> (<span class='ident'>addr_buf</span>, <span class='ident'>addr_len</span>) <span class='op'>=</span> <span class='ident'>socket_addr_to_ptrs</span>(<span class='ident'>addr</span>);
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>WSABUF</span> {
-            <span class='ident'>len</span>: <span class='ident'>buf</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>u_long</span>,
-            <span class='ident'>buf</span>: <span class='ident'>buf</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-        };
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>buf</span> <span class='op'>=</span> <span class='ident'>slice2buf</span>(<span class='ident'>buf</span>);
         <span class='kw'>let</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>WSASendTo</span>(<span class='self'>self</span>.<span class='ident'>as_raw_socket</span>(), <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>buf</span>, <span class='number'>1</span>,
                           <span class='number'>0</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _, <span class='number'>0</span>,
                           <span class='ident'>addr_buf</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw'>const</span> _, <span class='ident'>addr_len</span>,

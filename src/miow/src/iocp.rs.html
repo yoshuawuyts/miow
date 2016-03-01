@@ -333,9 +333,14 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Bindings to IOCP, I/O Completion Ports</span>
 
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>cmp</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>os</span>::<span class='ident'>windows</span>::<span class='ident'>io</span>::<span class='op'>*</span>;
@@ -409,6 +414,7 @@
     }
 
     <span class='kw'>fn</span> <span class='ident'>_add</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>, <span class='ident'>handle</span>: <span class='ident'>HANDLE</span>) <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span><span class='ident'>token</span>), <span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>ULONG_PTR</span><span class='op'>&gt;</span>());
         <span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
             <span class='ident'>CreateIoCompletionPort</span>(<span class='ident'>handle</span>, <span class='self'>self</span>.<span class='ident'>handle</span>.<span class='ident'>raw</span>(),
                                    <span class='ident'>token</span> <span class='kw'>as</span> <span class='ident'>ULONG_PTR</span>, <span class='number'>0</span>)
@@ -474,10 +480,11 @@
                          <span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>OVERLAPPED_ENTRY</span><span class='op'>&gt;</span>());
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>removed</span> <span class='op'>=</span> <span class='number'>0</span>;
         <span class='kw'>let</span> <span class='ident'>timeout</span> <span class='op'>=</span> <span class='ident'>timeout_ms</span>.<span class='ident'>unwrap_or</span>(<span class='ident'>INFINITE</span>);
+        <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>cmp</span>::<span class='ident'>min</span>(<span class='ident'>list</span>.<span class='ident'>len</span>(), <span class='op'>&lt;</span><span class='ident'>ULONG</span><span class='op'>&gt;</span>::<span class='ident'>max_value</span>() <span class='kw'>as</span> <span class='ident'>usize</span>) <span class='kw'>as</span> <span class='ident'>ULONG</span>;
         <span class='kw'>let</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='kw'>unsafe</span> {
             <span class='ident'>GetQueuedCompletionStatusEx</span>(<span class='self'>self</span>.<span class='ident'>handle</span>.<span class='ident'>raw</span>(),
                                         <span class='ident'>list</span>.<span class='ident'>as_ptr</span>() <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> _,
-                                        <span class='ident'>list</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>ULONG</span>,
+                                        <span class='ident'>len</span>,
                                         <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>removed</span>,
                                         <span class='ident'>timeout</span>,
                                         <span class='ident'>FALSE</span>)
@@ -530,6 +537,7 @@
     <span class='doccomment'>/// interpreted by the system at all.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>new</span>(<span class='ident'>bytes</span>: <span class='ident'>u32</span>, <span class='ident'>token</span>: <span class='ident'>usize</span>, <span class='ident'>overlapped</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                <span class='op'>-&gt;</span> <span class='ident'>CompletionStatus</span> {
+        <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>mem</span>::<span class='ident'>size_of_val</span>(<span class='kw-2'>&amp;</span><span class='ident'>token</span>), <span class='ident'>mem</span>::<span class='ident'>size_of</span>::<span class='op'>&lt;</span><span class='ident'>ULONG_PTR</span><span class='op'>&gt;</span>());
         <span class='ident'>CompletionStatus</span>(<span class='ident'>OVERLAPPED_ENTRY</span> {
             <span class='ident'>dwNumberOfBytesTransferred</span>: <span class='ident'>bytes</span>,
             <span class='ident'>lpCompletionKey</span>: <span class='ident'>token</span> <span class='kw'>as</span> <span class='ident'>ULONG_PTR</span>,
