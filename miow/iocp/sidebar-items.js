@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CompletionPort","A handle to an Windows I/O Completion Port."],["CompletionStatus","A status message received from an I/O completion port.These statuses can be created via the `new` or `empty` constructors and then provided to a completion port, or they are read out of a completion port. The fields of each status are read through its accessor methods."]]});
+initSidebarItems({"struct":[["CompletionPort","A handle to an Windows I/O Completion Port."],["CompletionStatus","A status message received from an I/O completion port."]]});
