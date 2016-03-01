@@ -1,5 +1,6 @@
 //! Bindings to IOCP, I/O Completion Ports
 
+use std::cmp;
 use std::io;
 use std::mem;
 use std::os::windows::io::*;
@@ -73,6 +74,7 @@ impl CompletionPort {
     }
 
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
+        assert_eq!(mem::size_of_val(&token), mem::size_of::<ULONG_PTR>());
         let ret = unsafe {
             CreateIoCompletionPort(handle, self.handle.raw(),
                                    token as ULONG_PTR, 0)
@@ -138,10 +140,11 @@ impl CompletionPort {
                          mem::size_of::<OVERLAPPED_ENTRY>());
         let mut removed = 0;
         let timeout = timeout_ms.unwrap_or(INFINITE);
+        let len = cmp::min(list.len(), <ULONG>::max_value() as usize) as ULONG;
         let ret = unsafe {
             GetQueuedCompletionStatusEx(self.handle.raw(),
                                         list.as_ptr() as *mut _,
-                                        list.len() as ULONG,
+                                        len,
                                         &mut removed,
                                         timeout,
                                         FALSE)
@@ -194,6 +197,7 @@ impl CompletionStatus {
     /// interpreted by the system at all.
     pub fn new(bytes: u32, token: usize, overlapped: *mut Overlapped)
                -> CompletionStatus {
+        assert_eq!(mem::size_of_val(&token), mem::size_of::<ULONG_PTR>());
         CompletionStatus(OVERLAPPED_ENTRY {
             dwNumberOfBytesTransferred: bytes,
             lpCompletionKey: token as ULONG_PTR,

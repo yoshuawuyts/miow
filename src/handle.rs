@@ -1,4 +1,5 @@
 use std::io;
+use std::cmp;
 
 use winapi::*;
 use kernel32::*;
@@ -26,18 +27,20 @@ impl Handle {
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut bytes = 0;
+        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         try!(::cvt(unsafe {
-            WriteFile(self.0, buf.as_ptr() as *const _,
-                      buf.len() as DWORD, &mut bytes, 0 as *mut _)
+            WriteFile(self.0, buf.as_ptr() as *const _, len, &mut bytes,
+                      0 as *mut _)
         }));
         Ok(bytes as usize)
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut bytes = 0;
+        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         try!(::cvt(unsafe {
-            ReadFile(self.0, buf.as_mut_ptr() as *mut _,
-                     buf.len() as DWORD, &mut bytes, 0 as *mut _)
+            ReadFile(self.0, buf.as_mut_ptr() as *mut _, len, &mut bytes,
+                     0 as *mut _)
         }));
         Ok(bytes as usize)
     }
@@ -45,9 +48,10 @@ impl Handle {
     pub unsafe fn read_overlapped(&self, buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<bool> {
+        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = ::cvt({
-            ReadFile(self.0, buf.as_mut_ptr() as *mut _,
-                     buf.len() as DWORD, 0 as *mut _, overlapped)
+            ReadFile(self.0, buf.as_mut_ptr() as *mut _, len, 0 as *mut _,
+                     overlapped)
         });
         match res {
             Ok(_) => Ok(true),
@@ -60,9 +64,10 @@ impl Handle {
     pub unsafe fn write_overlapped(&self, buf: &[u8],
                                    overlapped: *mut OVERLAPPED)
                                    -> io::Result<bool> {
+        let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = ::cvt({
-            WriteFile(self.0, buf.as_ptr() as *const _,
-                      buf.len() as DWORD, 0 as *mut _, overlapped)
+            WriteFile(self.0, buf.as_ptr() as *const _, len, 0 as *mut _,
+                      overlapped)
         });
         match res {
             Ok(_) => Ok(true),

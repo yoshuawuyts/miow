@@ -3,6 +3,7 @@
 //! This module contains a number of extension traits for the types in
 //! `std::net` for Windows-specific functionality.
 
+use std::cmp;
 use std::io;
 use std::mem;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
@@ -345,13 +346,17 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR,
     }
 }
 
+unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
+    WSABUF {
+        len: cmp::min(slice.len(), <u_long>::max_value() as usize) as u_long,
+        buf: slice.as_ptr() as *mut _,
+    }
+}
+
 impl TcpStreamExt for TcpStream {
     unsafe fn read_overlapped(&self, buf: &mut [u8],
                               overlapped: &mut Overlapped) -> io::Result<bool> {
-        let mut buf = WSABUF {
-            len: buf.len() as u_long,
-            buf: buf.as_mut_ptr() as *mut _,
-        };
+        let mut buf = slice2buf(buf);
         let mut flags = 0;
         let r = WSARecv(self.as_raw_socket(), &mut buf, 1,
                         0 as *mut _, &mut flags, overlapped.raw(), None);
@@ -360,10 +365,7 @@ impl TcpStreamExt for TcpStream {
 
     unsafe fn write_overlapped(&self, buf: &[u8],
                                overlapped: &mut Overlapped) -> io::Result<bool> {
-        let mut buf = WSABUF {
-            len: buf.len() as u_long,
-            buf: buf.as_ptr() as *mut _,
-        };
+        let mut buf = slice2buf(buf);
         let r = WSASend(self.as_raw_socket(), &mut buf, 1,
                         0 as *mut _, 0, overlapped.raw(), None);
         cvt(r)
@@ -411,10 +413,7 @@ impl UdpSocketExt for UdpSocket {
                                    addr: &mut SocketAddrBuf,
                                    overlapped: &mut Overlapped)
                                    -> io::Result<bool> {
-        let mut buf = WSABUF {
-            len: buf.len() as u_long,
-            buf: buf.as_mut_ptr() as *mut _,
-        };
+        let mut buf = slice2buf(buf);
         let mut flags = 0;
         let r = WSARecvFrom(self.as_raw_socket(), &mut buf, 1,
                             0 as *mut _, &mut flags,
@@ -430,10 +429,7 @@ impl UdpSocketExt for UdpSocket {
                                  overlapped: &mut Overlapped)
                                  -> io::Result<bool> {
         let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
-        let mut buf = WSABUF {
-            len: buf.len() as u_long,
-            buf: buf.as_ptr() as *mut _,
-        };
+        let mut buf = slice2buf(buf);
         let r = WSASendTo(self.as_raw_socket(), &mut buf, 1,
                           0 as *mut _, 0,
                           addr_buf as *const _, addr_len,
