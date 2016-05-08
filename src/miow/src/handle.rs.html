@@ -184,9 +184,9 @@
                      <span class='ident'>overlapped</span>)
         });
         <span class='kw'>match</span> <span class='ident'>res</span> {
-            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>true</span>),
+            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>true</span>),
             <span class='prelude-val'>Err</span>(<span class='kw-2'>ref</span> <span class='ident'>e</span>) <span class='kw'>if</span> <span class='ident'>e</span>.<span class='ident'>raw_os_error</span>() <span class='op'>==</span> <span class='prelude-val'>Some</span>(<span class='ident'>ERROR_IO_PENDING</span> <span class='kw'>as</span> <span class='ident'>i32</span>)
-                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>false</span>),
+                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>false</span>),
             <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>),
         }
     }
@@ -200,9 +200,9 @@
                       <span class='ident'>overlapped</span>)
         });
         <span class='kw'>match</span> <span class='ident'>res</span> {
-            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>true</span>),
+            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>true</span>),
             <span class='prelude-val'>Err</span>(<span class='kw-2'>ref</span> <span class='ident'>e</span>) <span class='kw'>if</span> <span class='ident'>e</span>.<span class='ident'>raw_os_error</span>() <span class='op'>==</span> <span class='prelude-val'>Some</span>(<span class='ident'>ERROR_IO_PENDING</span> <span class='kw'>as</span> <span class='ident'>i32</span>)
-                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>false</span>),
+                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>false</span>),
             <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>),
         }
     }

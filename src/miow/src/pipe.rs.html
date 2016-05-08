@@ -725,9 +725,9 @@
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>r</span> <span class='op'>=</span> <span class='ident'>OpenOptions</span>::<span class='ident'>new</span>();
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>w</span> <span class='op'>=</span> <span class='ident'>OpenOptions</span>::<span class='ident'>new</span>();
     <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>rw</span> <span class='op'>=</span> <span class='ident'>OpenOptions</span>::<span class='ident'>new</span>();
-    <span class='ident'>r</span>.<span class='ident'>read</span>(<span class='boolval'>true</span>);
-    <span class='ident'>w</span>.<span class='ident'>write</span>(<span class='boolval'>true</span>);
-    <span class='ident'>rw</span>.<span class='ident'>read</span>(<span class='boolval'>true</span>).<span class='ident'>write</span>(<span class='boolval'>true</span>);
+    <span class='ident'>r</span>.<span class='ident'>read</span>(<span class='boolvalue'>true</span>);
+    <span class='ident'>w</span>.<span class='ident'>write</span>(<span class='boolvalue'>true</span>);
+    <span class='ident'>rw</span>.<span class='ident'>read</span>(<span class='boolvalue'>true</span>).<span class='ident'>write</span>(<span class='boolvalue'>true</span>);
     <span class='kw'>loop</span> {
         <span class='kw'>let</span> <span class='ident'>res</span> <span class='op'>=</span> <span class='ident'>rw</span>.<span class='ident'>open</span>(<span class='ident'>addr</span>).<span class='ident'>or_else</span>(<span class='op'>|</span>_<span class='op'>|</span> <span class='ident'>r</span>.<span class='ident'>open</span>(<span class='ident'>addr</span>))
                                .<span class='ident'>or_else</span>(<span class='op'>|</span>_<span class='op'>|</span> <span class='ident'>w</span>.<span class='ident'>open</span>(<span class='ident'>addr</span>));
@@ -820,11 +820,11 @@
     <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>connect_overlapped</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>overlapped</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
                                      <span class='op'>-&gt;</span> <span class='ident'>io</span>::<span class='prelude-ty'>Result</span><span class='op'>&lt;</span><span class='ident'>bool</span><span class='op'>&gt;</span> {
         <span class='kw'>match</span> ::<span class='ident'>cvt</span>(<span class='ident'>ConnectNamedPipe</span>(<span class='self'>self</span>.<span class='number'>0</span>.<span class='ident'>raw</span>(), <span class='ident'>overlapped</span>.<span class='ident'>raw</span>())) {
-            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>true</span>),
+            <span class='prelude-val'>Ok</span>(_) <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>true</span>),
             <span class='prelude-val'>Err</span>(<span class='kw-2'>ref</span> <span class='ident'>e</span>) <span class='kw'>if</span> <span class='ident'>e</span>.<span class='ident'>raw_os_error</span>() <span class='op'>==</span> <span class='prelude-val'>Some</span>(<span class='ident'>ERROR_PIPE_CONNECTED</span> <span class='kw'>as</span> <span class='ident'>i32</span>)
-                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>true</span>),
+                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>true</span>),
             <span class='prelude-val'>Err</span>(<span class='kw-2'>ref</span> <span class='ident'>e</span>) <span class='kw'>if</span> <span class='ident'>e</span>.<span class='ident'>raw_os_error</span>() <span class='op'>==</span> <span class='prelude-val'>Some</span>(<span class='ident'>ERROR_IO_PENDING</span> <span class='kw'>as</span> <span class='ident'>i32</span>)
-                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolval'>false</span>),
+                <span class='op'>=&gt;</span> <span class='prelude-val'>Ok</span>(<span class='boolvalue'>false</span>),
             <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='prelude-val'>Err</span>(<span class='ident'>e</span>),
         }
     }
@@ -955,13 +955,13 @@
     }
 
     <span class='doccomment'>/// Indicates whether data is allowed to flow from the client to the server.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>inbound</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>allowed</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>inbound</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>allowed</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='ident'>flag</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>dwOpenMode</span>, <span class='ident'>allowed</span>, <span class='ident'>PIPE_ACCESS_INBOUND</span>);
         <span class='self'>self</span>
     }
 
     <span class='doccomment'>/// Indicates whether data is allowed to flow from the server to the client.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>outbound</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>allowed</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>outbound</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>allowed</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='ident'>flag</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>dwOpenMode</span>, <span class='ident'>allowed</span>, <span class='ident'>PIPE_ACCESS_OUTBOUND</span>);
         <span class='self'>self</span>
     }
@@ -970,13 +970,13 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// If set to true, then creation will fail if there&#39;s already an instance</span>
     <span class='doccomment'>/// elsewhere.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>first</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>first</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>first</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>first</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='ident'>flag</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>dwOpenMode</span>, <span class='ident'>first</span>, <span class='ident'>FILE_FLAG_FIRST_PIPE_INSTANCE</span>);
         <span class='self'>self</span>
     }
 
     <span class='doccomment'>/// Indicates whether this server can accept remote clients or not.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>accept_remote</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>accept</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>accept_remote</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>accept</span>: <span class='ident'>bool</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='ident'>flag</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='ident'>dwPipeMode</span>, <span class='op'>!</span><span class='ident'>accept</span>, <span class='ident'>PIPE_REJECT_REMOTE_CLIENTS</span>);
         <span class='self'>self</span>
     }
@@ -986,19 +986,19 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// The first instance of a pipe can specify this value. A value of 255</span>
     <span class='doccomment'>/// indicates that there is no limit to the number of instances.</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>max_instances</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>instances</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>max_instances</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>instances</span>: <span class='ident'>u8</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>nMaxInstances</span> <span class='op'>=</span> <span class='ident'>instances</span> <span class='kw'>as</span> <span class='ident'>DWORD</span>;
         <span class='self'>self</span>
     }
 
     <span class='doccomment'>/// Specifies the number of bytes to reserver for the output buffer</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>out_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buffer</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>out_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buffer</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>nOutBufferSize</span> <span class='op'>=</span> <span class='ident'>buffer</span> <span class='kw'>as</span> <span class='ident'>DWORD</span>;
         <span class='self'>self</span>
     }
 
     <span class='doccomment'>/// Specifies the number of bytes to reserver for the input buffer</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>in_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buffer</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='kw'>Self</span> {
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>in_buffer_size</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>buffer</span>: <span class='ident'>u32</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>Self</span> {
         <span class='self'>self</span>.<span class='ident'>nInBufferSize</span> <span class='op'>=</span> <span class='ident'>buffer</span> <span class='kw'>as</span> <span class='ident'>DWORD</span>;
         <span class='self'>self</span>
     }
@@ -1055,7 +1055,7 @@
         <span class='kw'>let</span> <span class='ident'>_a</span> <span class='op'>=</span> <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>));
         <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>).<span class='ident'>is_err</span>());
 
-        <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>NamedPipeBuilder</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>).<span class='ident'>first</span>(<span class='boolval'>false</span>).<span class='ident'>create</span>());
+        <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>NamedPipeBuilder</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>).<span class='ident'>first</span>(<span class='boolvalue'>false</span>).<span class='ident'>create</span>());
     }
 
     <span class='attribute'>#[<span class='ident'>test</span>]</span>
@@ -1121,7 +1121,7 @@
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>NamedPipe</span>::<span class='ident'>new</span>(<span class='kw-2'>&amp;</span><span class='ident'>name</span>));
 
         <span class='kw'>let</span> <span class='ident'>t</span> <span class='op'>=</span> <span class='ident'>thread</span>::<span class='ident'>spawn</span>(<span class='kw'>move</span> <span class='op'>||</span> {
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>f</span> <span class='op'>=</span> <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>OpenOptions</span>::<span class='ident'>new</span>().<span class='ident'>read</span>(<span class='boolval'>true</span>).<span class='ident'>write</span>(<span class='boolval'>true</span>).<span class='ident'>open</span>(<span class='ident'>name</span>));
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>f</span> <span class='op'>=</span> <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>OpenOptions</span>::<span class='ident'>new</span>().<span class='ident'>read</span>(<span class='boolvalue'>true</span>).<span class='ident'>write</span>(<span class='boolvalue'>true</span>).<span class='ident'>open</span>(<span class='ident'>name</span>));
             <span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>f</span>.<span class='ident'>write_all</span>(<span class='kw-2'>&amp;</span>[<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]));
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b</span> <span class='op'>=</span> [<span class='number'>0</span>; <span class='number'>10</span>];
             <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='macro'>t</span><span class='macro'>!</span>(<span class='ident'>f</span>.<span class='ident'>read</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>b</span>)), <span class='number'>3</span>);
