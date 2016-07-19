@@ -129,6 +129,14 @@ pub trait TcpStreamExt {
     unsafe fn connect_overlapped(&self, addr: &SocketAddr,
                                  overlapped: &mut Overlapped)
                                  -> io::Result<bool>;
+
+    /// Once a `connect_overlapped` has finished, this function needs to be
+    /// called to finish the connect operation.
+    ///
+    /// Currently this just calls `setsockopt` with `SO_UPDATE_CONNECT_CONTEXT`
+    /// to ensure that further functions like `getpeername` and `getsockname`
+    /// work correctly.
+    fn connect_complete(&self) -> io::Result<()>;
 }
 
 /// Additional methods for the `UdpSocket` type in the standard library.
@@ -264,6 +272,14 @@ pub trait TcpListenerExt {
                                 addrs: &mut AcceptAddrsBuf,
                                 overlapped: &mut Overlapped)
                                 -> io::Result<(TcpStream, bool)>;
+
+    /// Once an `accept_overlapped` has finished, this function needs to be
+    /// called to finish the accept operation.
+    ///
+    /// Currently this just calls `setsockopt` with `SO_UPDATE_ACCEPT_CONTEXT`
+    /// to ensure that further functions like `getpeername` and `getsockname`
+    /// work correctly.
+    fn accept_complete(&self, socket: &TcpStream) -> io::Result<()>;
 }
 
 #[doc(hidden)]
@@ -376,6 +392,22 @@ impl TcpStreamExt for TcpStream {
                                  -> io::Result<bool> {
         connect_overlapped(self.as_raw_socket(), addr, overlapped)
     }
+
+    fn connect_complete(&self) -> io::Result<()> {
+        const SO_UPDATE_CONNECT_CONTEXT: c_int = 0x7010;
+        let result = unsafe {
+            setsockopt(self.as_raw_socket(),
+                       SOL_SOCKET,
+                       SO_UPDATE_CONNECT_CONTEXT,
+                       0 as *const _,
+                       0)
+        };
+        if result == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
+        }
+    }
 }
 
 unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr,
@@ -483,6 +515,23 @@ impl TcpListenerExt for TcpListener {
         // NB: this unwrap() should be guaranteed to succeed, and this is an
         // assert that it does indeed succeed.
         Ok((socket.to_tcp_stream().unwrap(), succeeded))
+    }
+
+    fn accept_complete(&self, socket: &TcpStream) -> io::Result<()> {
+        const SO_UPDATE_ACCEPT_CONTEXT: c_int = 0x700B;
+        let me = self.as_raw_socket();
+        let result = unsafe {
+            setsockopt(socket.as_raw_socket(),
+                       SOL_SOCKET,
+                       SO_UPDATE_ACCEPT_CONTEXT,
+                       &me as *const _ as *const _,
+                       mem::size_of_val(&me) as c_int)
+        };
+        if result == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
+        }
     }
 }
 
@@ -698,13 +747,14 @@ mod tests {
 
             let mut a = Overlapped::zero();
             t!(builder.bind(addr_template));
-            let (_s, _) = unsafe {
+            let (s, _) = unsafe {
                 t!(builder.connect_overlapped(&addr, &mut a))
             };
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 0);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
+            t!(s.connect_complete());
 
             t!(t.join());
         })
@@ -791,13 +841,14 @@ mod tests {
 
             let mut a = Overlapped::zero();
             let mut addrs = AcceptAddrsBuf::new();
-            let (_s, _) = unsafe {
+            let (s, _) = unsafe {
                 t!(l.accept_overlapped(&builder, &mut addrs, &mut a))
             };
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 0);
             assert_eq!(status.token(), 1);
             assert_eq!(status.overlapped(), &mut a as *mut _);
+            t!(l.accept_complete(&s));
 
             let (remote, local) = t!(t.join());
             let addrs = addrs.parse(&l).unwrap();
