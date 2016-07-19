@@ -47,9 +47,10 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-288' class='srclink' href='../../src/miow/src/net.rs.html#235-267' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-286' class='srclink' href='../../src/miow/src/net.rs.html#243-283' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait TcpListenerExt {
     unsafe fn <a href='#tymethod.accept_overlapped' class='fnname'>accept_overlapped</a>(&amp;self, socket: &amp;<a class='struct' href='https://doc.rust-lang.org/net2-rs/net2/tcp/struct.TcpBuilder.html' title='net2::tcp::TcpBuilder'>TcpBuilder</a>, addrs: &amp;mut <a class='struct' href='../../miow/net/struct.AcceptAddrsBuf.html' title='miow::net::AcceptAddrsBuf'>AcceptAddrsBuf</a>, overlapped: &amp;mut <a class='struct' href='../../miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html' title='std::net::tcp::TcpStream'>TcpStream</a>, <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>&gt;;
+    fn <a href='#tymethod.accept_complete' class='fnname'>accept_complete</a>(&amp;self, socket: &amp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html' title='std::net::tcp::TcpStream'>TcpStream</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;;
 }</pre><div class='docblock'><p>Additional methods for the <code>TcpListener</code> type in the standard library.</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
@@ -78,6 +79,12 @@ I/O operation and is not in use for any other I/O.</p>
 <p>To safely use this function callers must ensure that the pointers are
 valid until the I/O operation is completed, typically via completion
 ports and waiting to receive the completion notification on the port.</p>
+</div><h3 id='tymethod.accept_complete' class='method stab '><code>fn <a href='#tymethod.accept_complete' class='fnname'>accept_complete</a>(&amp;self, socket: &amp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html' title='std::net::tcp::TcpStream'>TcpStream</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h3><div class='docblock'><p>Once an <code>accept_overlapped</code> has finished, this function needs to be
+called to finish the accept operation.</p>
+
+<p>Currently this just calls <code>setsockopt</code> with <code>SO_UPDATE_ACCEPT_CONTEXT</code>
+to ensure that further functions like <code>getpeername</code> and <code>getsockname</code>
+work correctly.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
