@@ -19,7 +19,7 @@ install:
 build: false
 
 test_script:
-  - cargo test
+  - cargo test --target %TARGET%
   - cargo doc --no-deps
 
 after_test:
