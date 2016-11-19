@@ -48,7 +48,8 @@
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a id='src-161' class='srclink' href='../../src/miow/src/net.rs.html#37-45' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct AcceptAddrsBuf { /* fields omitted */ }</pre><div class='docblock'><p>A type to represent a buffer in which an accepted socket&#39;s address will be
+<pre class='rust struct'><div class="docblock attributes">#[repr(C)]
+</div>pub struct AcceptAddrsBuf { /* fields omitted */ }</pre><div class='docblock'><p>A type to represent a buffer in which an accepted socket&#39;s address will be
 stored.</p>
 
 <p>This type is used with the <code>accept_overlapped</code> method on the
