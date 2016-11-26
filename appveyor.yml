@@ -4,7 +4,7 @@ environment:
   - TARGET: i686-pc-windows-msvc
   - TARGET: i686-pc-windows-gnu
   GH_TOKEN:
-    secure: e2/vp8nNMaW1jJzM5gd6SK/wl45BjumwEFtfEaWiQCxagAE0zz8feZkDBVbt1DLk
+    secure: nHB4fVo+y/Aak+L0nYfrT8Rcs8OfUNm0F2xcIVFVYJ9ehf0CzvCmSMUvWguM0kKp
 
 install:
   - SET PATH=C:\Python27;C:\Python27\Scripts;%PATH%;%APPDATA%\Python\Scripts
