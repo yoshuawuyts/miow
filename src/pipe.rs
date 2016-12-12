@@ -138,8 +138,6 @@ impl NamedPipe {
     ///                  .in_buffer_size(65536)
     ///                  .create();
     /// ```
-    ///
-    ///
     pub fn new<A: AsRef<OsStr>>(addr: A) -> io::Result<NamedPipe> {
         NamedPipeBuilder::new(addr).create()
     }
