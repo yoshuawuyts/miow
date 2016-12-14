@@ -95,6 +95,19 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
 
@@ -115,6 +128,19 @@
     <span class='doccomment'>/// notified via an I/O Completion Port.</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>zero</span>() <span class='op'>-&gt;</span> <span class='ident'>Overlapped</span> {
         <span class='ident'>Overlapped</span>(<span class='kw'>unsafe</span> { <span class='ident'>mem</span>::<span class='ident'>zeroed</span>() })
+    }
+
+    <span class='doccomment'>/// Creates a new `Overlapped` function pointer from the underlying</span>
+    <span class='doccomment'>/// `OVERLAPPED`, wrapping in the &quot;rusty&quot; wrapper for working with</span>
+    <span class='doccomment'>/// accessors.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// # Unsafety</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// This function doesn&#39;t validate `ptr` nor the lifetime of the returned</span>
+    <span class='doccomment'>/// pointer at all, it&#39;s recommended to use this method with extreme</span>
+    <span class='doccomment'>/// caution.</span>
+    <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>from_raw</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='ident'>ptr</span>: <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>OVERLAPPED</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='kw-2'>mut</span> <span class='ident'>Overlapped</span> {
+        <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span>(<span class='ident'>ptr</span> <span class='kw'>as</span> <span class='op'>*</span><span class='kw-2'>mut</span> <span class='ident'>Overlapped</span>)
     }
 
     <span class='doccomment'>/// Gain access to the raw underlying data</span>

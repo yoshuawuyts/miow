@@ -50,12 +50,21 @@
                </span><a class='srclink' href='../src/miow/overlapped.rs.html#8' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Overlapped(_);</pre><div class='docblock'><p>A wrapper around <code>OVERLAPPED</code> to provide &quot;rustic&quot; accessors and
 initializers.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/miow/overlapped.rs.html#13-53' title='goto source code'>[src]</a></span></h3>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/miow/overlapped.rs.html#13-66' title='goto source code'>[src]</a></span></h3>
 <div class='impl-items'><h4 id='method.zero' class='method'><span id='zero.v' class='invisible'><code>fn <a href='#method.zero' class='fnname'>zero</a>() -&gt; <a class='struct' href='../miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a></code></span></h4>
 <div class='docblock'><p>Creates a new zeroed out instance of an overlapped I/O tracking state.</p>
 
 <p>This is suitable for passing to methods which will then later get
 notified via an I/O Completion Port.</p>
+</div><h4 id='method.from_raw' class='method'><span id='from_raw.v' class='invisible'><code>unsafe fn <a href='#method.from_raw' class='fnname'>from_raw</a>&lt;'a&gt;(ptr: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a>OVERLAPPED) -&gt; &amp;'a mut <a class='struct' href='../miow/struct.Overlapped.html' title='miow::Overlapped'>Overlapped</a></code></span></h4>
+<div class='docblock'><p>Creates a new <code>Overlapped</code> function pointer from the underlying
+<code>OVERLAPPED</code>, wrapping in the &quot;rusty&quot; wrapper for working with
+accessors.</p>
+
+<h1 id='unsafety' class='section-header'><a href='#unsafety'>Unsafety</a></h1>
+<p>This function doesn&#39;t validate <code>ptr</code> nor the lifetime of the returned
+pointer at all, it&#39;s recommended to use this method with extreme
+caution.</p>
 </div><h4 id='method.raw' class='method'><span id='raw.v' class='invisible'><code>fn <a href='#method.raw' class='fnname'>raw</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.pointer.html'>*mut </a>OVERLAPPED</code></span></h4>
 <div class='docblock'><p>Gain access to the raw underlying data</p>
 </div><h4 id='method.set_offset' class='method'><span id='set_offset.v' class='invisible'><code>fn <a href='#method.set_offset' class='fnname'>set_offset</a>(&amp;mut self, offset: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>)</code></span></h4>
