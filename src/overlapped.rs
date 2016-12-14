@@ -19,6 +19,19 @@ impl Overlapped {
         Overlapped(unsafe { mem::zeroed() })
     }
 
+    /// Creates a new `Overlapped` function pointer from the underlying
+    /// `OVERLAPPED`, wrapping in the "rusty" wrapper for working with
+    /// accessors.
+    ///
+    /// # Unsafety
+    ///
+    /// This function doesn't validate `ptr` nor the lifetime of the returned
+    /// pointer at all, it's recommended to use this method with extreme
+    /// caution.
+    pub unsafe fn from_raw<'a>(ptr: *mut OVERLAPPED) -> &'a mut Overlapped {
+        &mut *(ptr as *mut Overlapped)
+    }
+
     /// Gain access to the raw underlying data
     pub fn raw(&self) -> *mut OVERLAPPED {
         &self.0 as *const _ as *mut _

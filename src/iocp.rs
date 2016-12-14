@@ -206,6 +206,15 @@ impl CompletionStatus {
         })
     }
 
+    /// Creates a new borrowed completion status from the borrowed
+    /// `OVERLAPPED_ENTRY` argument provided.
+    ///
+    /// This method will wrap the `OVERLAPPED_ENTRY` in a `CompletionStatus`,
+    /// returning the wrapped structure.
+    pub fn from_entry(entry: &OVERLAPPED_ENTRY) -> &CompletionStatus {
+        unsafe { &*(entry as *const _ as *const _) }
+    }
+
     /// Creates a new "zero" completion status.
     ///
     /// This function is useful when creating a stack buffer or vector of
@@ -233,6 +242,11 @@ impl CompletionStatus {
     /// the I/O operation was started.
     pub fn overlapped(&self) -> *mut Overlapped {
         self.0.lpOverlapped as *mut _
+    }
+
+    /// Returns a pointer to the internal `OVERLAPPED_ENTRY` object.
+    pub fn entry(&self) -> &OVERLAPPED_ENTRY {
+        &self.0
     }
 }
 
