@@ -137,6 +137,26 @@ pub trait TcpStreamExt {
     /// to ensure that further functions like `getpeername` and `getsockname`
     /// work correctly.
     fn connect_complete(&self) -> io::Result<()>;
+
+    /// Calls the `GetOverlappedResult` function to get the result of an
+    /// overlapped operation for this handle.
+    ///
+    /// This function takes the `OVERLAPPED` argument which must have been used
+    /// to initiate an overlapped I/O operation, and returns either the
+    /// successful number of bytes transferred during the operation or an error
+    /// if one occurred, along with the results of the `lpFlags` parameter of
+    /// the relevant operation, if applicable.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe as `overlapped` must have previously been used
+    /// to execute an operation for this handle, and it must also be a valid
+    /// pointer to an `Overlapped` instance.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `UdpSocket` type in the standard library.
@@ -205,6 +225,26 @@ pub trait UdpSocketExt {
                                  addr: &SocketAddr,
                                  overlapped: &mut Overlapped)
                                  -> io::Result<bool>;
+
+    /// Calls the `GetOverlappedResult` function to get the result of an
+    /// overlapped operation for this handle.
+    ///
+    /// This function takes the `OVERLAPPED` argument which must have been used
+    /// to initiate an overlapped I/O operation, and returns either the
+    /// successful number of bytes transferred during the operation or an error
+    /// if one occurred, along with the results of the `lpFlags` parameter of
+    /// the relevant operation, if applicable.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe as `overlapped` must have previously been used
+    /// to execute an operation for this handle, and it must also be a valid
+    /// pointer to an `Overlapped` instance.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `TcpBuilder` type in the `net2` library.
@@ -237,6 +277,26 @@ pub trait TcpBuilderExt {
     unsafe fn connect_overlapped(&self, addr: &SocketAddr,
                                  overlapped: &mut Overlapped)
                                  -> io::Result<(TcpStream, bool)>;
+
+    /// Calls the `GetOverlappedResult` function to get the result of an
+    /// overlapped operation for this handle.
+    ///
+    /// This function takes the `OVERLAPPED` argument which must have been used
+    /// to initiate an overlapped I/O operation, and returns either the
+    /// successful number of bytes transferred during the operation or an error
+    /// if one occurred, along with the results of the `lpFlags` parameter of
+    /// the relevant operation, if applicable.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe as `overlapped` must have previously been used
+    /// to execute an operation for this handle, and it must also be a valid
+    /// pointer to an `Overlapped` instance.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `TcpListener` type in the standard library.
@@ -280,6 +340,26 @@ pub trait TcpListenerExt {
     /// to ensure that further functions like `getpeername` and `getsockname`
     /// work correctly.
     fn accept_complete(&self, socket: &TcpStream) -> io::Result<()>;
+
+    /// Calls the `GetOverlappedResult` function to get the result of an
+    /// overlapped operation for this handle.
+    ///
+    /// This function takes the `OVERLAPPED` argument which must have been used
+    /// to initiate an overlapped I/O operation, and returns either the
+    /// successful number of bytes transferred during the operation or an error
+    /// if one occurred, along with the results of the `lpFlags` parameter of
+    /// the relevant operation, if applicable.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe as `overlapped` must have previously been used
+    /// to execute an operation for this handle, and it must also be a valid
+    /// pointer to an `Overlapped` instance.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
 }
 
 #[doc(hidden)]
@@ -369,6 +449,21 @@ unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
     }
 }
 
+unsafe fn result(socket: SOCKET, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+    let mut transferred = 0;
+    let mut flags = 0;
+    let r = WSAGetOverlappedResult(socket,
+                                   (*overlapped).raw(),
+                                   &mut transferred,
+                                   FALSE,
+                                   &mut flags);
+    if r == 0 {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok((transferred as usize, flags))
+    }
+}
+
 impl TcpStreamExt for TcpStream {
     unsafe fn read_overlapped(&self, buf: &mut [u8],
                               overlapped: &mut Overlapped) -> io::Result<bool> {
@@ -407,6 +502,10 @@ impl TcpStreamExt for TcpStream {
         } else {
             Err(io::Error::last_os_error())
         }
+    }
+
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+        result(self.as_raw_socket(), overlapped)
     }
 }
 
@@ -468,6 +567,10 @@ impl UdpSocketExt for UdpSocket {
                           overlapped.raw(), None);
         cvt(r)
     }
+
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+        result(self.as_raw_socket(), overlapped)
+    }
 }
 
 impl TcpBuilderExt for TcpBuilder {
@@ -477,6 +580,10 @@ impl TcpBuilderExt for TcpBuilder {
         connect_overlapped(self.as_raw_socket(), addr, overlapped).map(|s| {
             (self.to_tcp_stream().unwrap(), s)
         })
+    }
+
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+        result(self.as_raw_socket(), overlapped)
     }
 }
 
@@ -532,6 +639,10 @@ impl TcpListenerExt for TcpListener {
         } else {
             Err(io::Error::last_os_error())
         }
+    }
+
+    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+        result(self.as_raw_socket(), overlapped)
     }
 }
 

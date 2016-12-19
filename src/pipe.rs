@@ -274,6 +274,36 @@ impl NamedPipe {
                                    -> io::Result<bool> {
         self.0.write_overlapped(buf, overlapped.raw())
     }
+
+    /// Calls the `GetOverlappedResult` function to get the result of an
+    /// overlapped operation for this handle.
+    ///
+    /// This function takes the `OVERLAPPED` argument which must have been used
+    /// to initiate an overlapped I/O operation, and returns either the
+    /// successful number of bytes transferred during the operation or an error
+    /// if one occurred.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe as `overlapped` must have previously been used
+    /// to execute an operation for this handle, and it must also be a valid
+    /// pointer to an `Overlapped` instance.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic
+    pub unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<usize> {
+        let mut transferred = 0;
+        let r = GetOverlappedResult(self.0.raw(),
+                                    (*overlapped).raw(),
+                                    &mut transferred,
+                                    FALSE);
+        if r == 0 {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(transferred as usize)
+        }
+    }
 }
 
 impl Read for NamedPipe {
