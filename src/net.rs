@@ -66,10 +66,11 @@ pub trait TcpStreamExt {
     /// completes and the given `OVERLAPPED` instance is used to track the
     /// overlapped operation.
     ///
-    /// If the operation succeeds, `Ok(true)` is returned. If the operation
-    /// returns an error indicating that the I/O is currently pending,
-    /// `Ok(false)` is returned. Otherwise, the error associated with the
-    /// operation is returned and no overlapped operation is enqueued.
+    /// If the operation succeeds, `Ok(Some(n))` is returned indicating how
+    /// many bytes were read. If the operation returns an error indicating that
+    /// the I/O is currently pending, `Ok(None)` is returned. Otherwise, the
+    /// error associated with the operation is returned and no overlapped
+    /// operation is enqueued.
     ///
     /// The number of bytes read will be returned as part of the completion
     /// notification when the I/O finishes.
@@ -97,10 +98,11 @@ pub trait TcpStreamExt {
     /// and the given `OVERLAPPED` instance is used to track the overlapped
     /// operation.
     ///
-    /// If the operation succeeds, `Ok(true)` is returned. If the operation
-    /// returns an error indicating that the I/O is currently pending,
-    /// `Ok(false)` is returned. Otherwise, the error associated with the
-    /// operation is returned and no overlapped operation is enqueued.
+    /// If the operation succeeds, `Ok(Some(n))` is returned where `n` is the
+    /// number of bytes that were written. If the operation returns an error
+    /// indicating that the I/O is currently pending, `Ok(None)` is returned.
+    /// Otherwise, the error associated with the operation is returned and no
+    /// overlapped operation is enqueued.
     ///
     /// The number of bytes written will be returned as part of the completion
     /// notification when the I/O finishes.
@@ -173,10 +175,11 @@ pub trait UdpSocketExt {
     /// `addr`, and the given `OVERLAPPED` instance is used to track the
     /// overlapped operation.
     ///
-    /// If the operation succeeds, `Ok(true)` is returned. If the operation
-    /// returns an error indicating that the I/O is currently pending,
-    /// `Ok(false)` is returned. Otherwise, the error associated with the
-    /// operation is returned and no overlapped operation is enqueued.
+    /// If the operation succeeds, `Ok(Some(n))` is returned where `n` is the
+    /// number of bytes that were read. If the operation returns an error
+    /// indicating that the I/O is currently pending, `Ok(None)` is returned.
+    /// Otherwise, the error associated with the operation is returned and no
+    /// overlapped operation is enqueued.
     ///
     /// The number of bytes read will be returned as part of the completion
     /// notification when the I/O finishes.
@@ -205,10 +208,11 @@ pub trait UdpSocketExt {
     /// be written when the operation completes and the given `OVERLAPPED`
     /// instance is used to track the overlapped operation.
     ///
-    /// If the operation succeeds, `Ok(true)` is returned. If the operation
-    /// returns an error indicating that the I/O is currently pending,
-    /// `Ok(false)` is returned. Otherwise, the error associated with the
-    /// operation is returned and no overlapped operation is enqueued.
+    /// If the operation succeeds, `Ok(Some(n0)` is returned where `n` byte
+    /// were written. If the operation returns an error indicating that the I/O
+    /// is currently pending, `Ok(None)` is returned. Otherwise, the error
+    /// associated with the operation is returned and no overlapped operation
+    /// is enqueued.
     ///
     /// The number of bytes written will be returned as part of the completion
     /// notification when the I/O finishes.
@@ -262,9 +266,14 @@ pub trait TcpBuilderExt {
     /// complete asynchronously. If successful this function will return the
     /// corresponding TCP stream.
     ///
+    /// The `buf` argument provided is an initial buffer of data that should be
+    /// sent after the connection is initiated. It's acceptable to
+    /// pass an empty slice here.
+    ///
     /// This function will also return whether the connect immediately
-    /// succeeded or not. If `false` is returned then the I/O operation is still
-    /// pending and will complete at a later date.
+    /// succeeded or not. If `None` is returned then the I/O operation is still
+    /// pending and will complete at a later date, and if `Some(bytes)` is
+    /// returned then that many bytes were transferred.
     ///
     /// Note that to succeed this requires that the underlying socket has
     /// previously been bound via a call to `bind` to a local address.
@@ -272,9 +281,9 @@ pub trait TcpBuilderExt {
     /// # Unsafety
     ///
     /// This function is unsafe because the kernel requires that the
-    /// `overlapped` pointer is valid until the end of the I/O operation. The
-    /// kernel also requires that `overlapped` is unique for this I/O operation
-    /// and is not in use for any other I/O.
+    /// `overlapped` and `buf` pointers to be  valid until the end of the I/O
+    /// operation. The kernel also requires that `overlapped` is unique for
+    /// this I/O operation and is not in use for any other I/O.
     ///
     /// To safely use this function callers must ensure that this pointer is
     /// valid until the I/O operation is completed, typically via completion
@@ -337,9 +346,9 @@ pub trait TcpListenerExt {
     /// ports and waiting to receive the completion notification on the port.
     unsafe fn accept_overlapped(&self,
                                 socket: &TcpBuilder,
-                                addrs: *mut AcceptAddrsBuf,
+                                addrs: &mut AcceptAddrsBuf,
                                 overlapped: *mut OVERLAPPED)
-                                -> io::Result<(TcpStream, Option<usize>)>;
+                                -> io::Result<(TcpStream, bool)>;
 
     /// Once an `accept_overlapped` has finished, this function needs to be
     /// called to finish the accept operation.
@@ -621,9 +630,9 @@ impl TcpBuilderExt for TcpBuilder {
 impl TcpListenerExt for TcpListener {
     unsafe fn accept_overlapped(&self,
                                 socket: &TcpBuilder,
-                                addrs: *mut AcceptAddrsBuf,
+                                addrs: &mut AcceptAddrsBuf,
                                 overlapped: *mut OVERLAPPED)
-                                -> io::Result<(TcpStream, Option<usize>)> {
+                                -> io::Result<(TcpStream, bool)> {
         static ACCEPTEX: WsaExtension = WsaExtension {
             guid: GUID {
                 Data1: 0xb5367df1,
@@ -646,9 +655,10 @@ impl TcpListenerExt for TcpListener {
         let r = accept_ex(self.as_raw_socket(), socket.as_raw_socket(),
                           a, b, c, d, &mut bytes, overlapped);
         let succeeded = if r == TRUE {
-            Some(bytes as usize)
+            true
         } else {
-            try!(last_err())
+            try!(last_err());
+            false
         };
         // NB: this unwrap() should be guaranteed to succeed, and this is an
         // assert that it does indeed succeed.
