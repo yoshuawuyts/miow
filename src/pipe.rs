@@ -6,6 +6,7 @@ use std::io::prelude::*;
 use std::io;
 use std::os::windows::ffi::*;
 use std::os::windows::io::*;
+use std::time::Duration;
 
 use winapi::*;
 use kernel32::*;
@@ -117,7 +118,7 @@ fn _connect(addr: &OsStr) -> io::Result<File> {
             Err(e) => return Err(e),
         }
 
-        try!(NamedPipe::wait(addr, Some(20_000)));
+        try!(NamedPipe::wait(addr, Some(Duration::new(20, 0))));
     }
 }
 
@@ -147,14 +148,14 @@ impl NamedPipe {
     ///
     /// If this function succeeds the process can create a `File` to connect to
     /// the named pipe.
-    pub fn wait<A: AsRef<OsStr>>(addr: A, timeout: Option<u32>)
+    pub fn wait<A: AsRef<OsStr>>(addr: A, timeout: Option<Duration>)
                                  -> io::Result<()> {
         NamedPipe::_wait(addr.as_ref(), timeout)
     }
 
-    fn _wait(addr: &OsStr, timeout: Option<u32>) -> io::Result<()> {
+    fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
-        let timeout = timeout.unwrap_or(INFINITE);
+        let timeout = ::dur2ms(timeout);
         ::cvt(unsafe {
             WaitNamedPipeW(addr.as_ptr(), timeout)
         }).map(|_| ())
