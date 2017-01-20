@@ -11,7 +11,6 @@ use std::time::Duration;
 use winapi::*;
 use kernel32::*;
 use handle::Handle;
-use Overlapped;
 
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]
@@ -195,9 +194,9 @@ impl NamedPipe {
     /// To safely use this function callers must ensure that this pointer is
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
-    pub unsafe fn connect_overlapped(&self, overlapped: &mut Overlapped)
+    pub unsafe fn connect_overlapped(&self, overlapped: *mut OVERLAPPED)
                                      -> io::Result<bool> {
-        match ::cvt(ConnectNamedPipe(self.0.raw(), overlapped.raw())) {
+        match ::cvt(ConnectNamedPipe(self.0.raw(), overlapped)) {
             Ok(_) => Ok(true),
             Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32)
                 => Ok(true),
@@ -239,10 +238,11 @@ impl NamedPipe {
     /// To safely use this function callers must ensure that the pointers are
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
-    pub unsafe fn read_overlapped(&self, buf: &mut [u8],
-                                  overlapped: &mut Overlapped)
+    pub unsafe fn read_overlapped(&self,
+                                  buf: &mut [u8],
+                                  overlapped: *mut OVERLAPPED)
                                   -> io::Result<bool> {
-        self.0.read_overlapped(buf, overlapped.raw())
+        self.0.read_overlapped(buf, overlapped)
     }
 
     /// Issues an overlapped write operation to occur on this pipe.
@@ -270,10 +270,11 @@ impl NamedPipe {
     /// To safely use this function callers must ensure that the pointers are
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
-    pub unsafe fn write_overlapped(&self, buf: &[u8],
-                                   overlapped: &mut Overlapped)
+    pub unsafe fn write_overlapped(&self,
+                                   buf: &[u8],
+                                   overlapped: *mut OVERLAPPED)
                                    -> io::Result<bool> {
-        self.0.write_overlapped(buf, overlapped.raw())
+        self.0.write_overlapped(buf, overlapped)
     }
 
     /// Calls the `GetOverlappedResult` function to get the result of an
@@ -293,10 +294,11 @@ impl NamedPipe {
     /// # Panics
     ///
     /// This function will panic
-    pub unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<usize> {
+    pub unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                         -> io::Result<usize> {
         let mut transferred = 0;
         let r = GetOverlappedResult(self.0.raw(),
-                                    (*overlapped).raw(),
+                                    overlapped,
                                     &mut transferred,
                                     FALSE);
         if r == 0 {
@@ -437,6 +439,8 @@ mod tests {
     use std::io::prelude::*;
     use std::sync::mpsc::channel;
     use std::thread;
+    use std::time::Duration;
+
     use rand::{thread_rng, Rng};
 
     use super::{anonymous, NamedPipe, NamedPipeBuilder};
@@ -489,7 +493,7 @@ mod tests {
         let t = thread::spawn(move || {
             t!(NamedPipe::wait(&name, None));
             t!(File::open(&name));
-            assert!(NamedPipe::wait(&name, Some(1)).is_err());
+            assert!(NamedPipe::wait(&name, Some(Duration::from_millis(1))).is_err());
             t!(tx.send(()));
         });
 
@@ -511,15 +515,15 @@ mod tests {
         let cp = t!(CompletionPort::new(1));
         t!(cp.add_handle(2, &a));
 
-        let mut over = Overlapped::zero();
+        let over = Overlapped::zero();
         unsafe {
-            t!(a.connect_overlapped(&mut over));
+            t!(a.connect_overlapped(over.raw()));
         }
 
         let status = t!(cp.get(None));
         assert_eq!(status.bytes_transferred(), 0);
         assert_eq!(status.token(), 2);
-        assert_eq!(status.overlapped(), &mut over as *mut _);
+        assert_eq!(status.overlapped(), over.raw());
         t!(t.join());
     }
 
@@ -561,14 +565,14 @@ mod tests {
         t!(a.connect());
 
         let mut b = [0; 10];
-        let mut over = Overlapped::zero();
+        let over = Overlapped::zero();
         unsafe {
-            t!(a.read_overlapped(&mut b, &mut over));
+            t!(a.read_overlapped(&mut b, over.raw()));
         }
         let status = t!(cp.get(None));
         assert_eq!(status.bytes_transferred(), 3);
         assert_eq!(status.token(), 3);
-        assert_eq!(status.overlapped(), &mut over as *mut _);
+        assert_eq!(status.overlapped(), over.raw());
         assert_eq!(&b[..3], &[1, 2, 3]);
 
         t!(t.join());
@@ -590,15 +594,15 @@ mod tests {
         t!(cp.add_handle(3, &a));
         t!(a.connect());
 
-        let mut over = Overlapped::zero();
+        let over = Overlapped::zero();
         unsafe {
-            t!(a.write_overlapped(&[1, 2, 3], &mut over));
+            t!(a.write_overlapped(&[1, 2, 3], over.raw()));
         }
 
         let status = t!(cp.get(None));
         assert_eq!(status.bytes_transferred(), 3);
         assert_eq!(status.token(), 3);
-        assert_eq!(status.overlapped(), &mut over as *mut _);
+        assert_eq!(status.overlapped(), over.raw());
 
         t!(t.join());
     }

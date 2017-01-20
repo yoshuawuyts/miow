@@ -14,7 +14,6 @@ use std::os::windows::prelude::*;
 use net2::TcpBuilder;
 use winapi::*;
 use ws2_32::*;
-use Overlapped;
 
 /// A type to represent a buffer in which a socket address will be stored.
 ///
@@ -64,7 +63,7 @@ pub trait TcpStreamExt {
     ///
     /// This function will issue an overlapped I/O read (via `WSARecv`) on this
     /// socket. The provided buffer will be filled in when the operation
-    /// completes and the given `Overlapped` instance is used to track the
+    /// completes and the given `OVERLAPPED` instance is used to track the
     /// overlapped operation.
     ///
     /// If the operation succeeds, `Ok(true)` is returned. If the operation
@@ -88,13 +87,14 @@ pub trait TcpStreamExt {
     /// the port.
     unsafe fn read_overlapped(&self,
                               buf: &mut [u8],
-                              overlapped: &mut Overlapped) -> io::Result<Option<usize>>;
+                              overlapped: *mut OVERLAPPED)
+                              -> io::Result<Option<usize>>;
 
     /// Execute an overlapped write I/O operation on this TCP stream.
     ///
     /// This function will issue an overlapped I/O write (via `WSASend`) on this
     /// socket. The provided buffer will be written when the operation completes
-    /// and the given `Overlapped` instance is used to track the overlapped
+    /// and the given `OVERLAPPED` instance is used to track the overlapped
     /// operation.
     ///
     /// If the operation succeeds, `Ok(true)` is returned. If the operation
@@ -118,7 +118,8 @@ pub trait TcpStreamExt {
     /// the port.
     unsafe fn write_overlapped(&self,
                                buf: &[u8],
-                               overlapped: &mut Overlapped) -> io::Result<Option<usize>>;
+                               overlapped: *mut OVERLAPPED)
+                               -> io::Result<Option<usize>>;
 
     /// Execute a connection operation for this socket.
     ///
@@ -126,8 +127,10 @@ pub trait TcpStreamExt {
     /// [`TcpBuilderExt::connect_overlapped`][link] documentation.
     ///
     /// [link]: trait.TcpBuilderExt.html#tymethod.connect_overlapped
-    unsafe fn connect_overlapped(&self, addr: &SocketAddr, buf: &[u8],
-                                 overlapped: &mut Overlapped)
+    unsafe fn connect_overlapped(&self,
+                                 addr: &SocketAddr,
+                                 buf: &[u8],
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<Option<usize>>;
 
     /// Once a `connect_overlapped` has finished, this function needs to be
@@ -151,12 +154,13 @@ pub trait TcpStreamExt {
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
-    /// pointer to an `Overlapped` instance.
+    /// pointer to an `OVERLAPPED` instance.
     ///
     /// # Panics
     ///
     /// This function will panic
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `UdpSocket` type in the standard library.
@@ -166,7 +170,7 @@ pub trait UdpSocketExt {
     /// This function will issue an overlapped I/O read (via `WSARecvFrom`) on
     /// this socket. The provided buffer will be filled in when the operation
     /// completes, the source from where the data came from will be written to
-    /// `addr`, and the given `Overlapped` instance is used to track the
+    /// `addr`, and the given `OVERLAPPED` instance is used to track the
     /// overlapped operation.
     ///
     /// If the operation succeeds, `Ok(true)` is returned. If the operation
@@ -190,15 +194,15 @@ pub trait UdpSocketExt {
     /// the port.
     unsafe fn recv_from_overlapped(&self,
                                    buf: &mut [u8],
-                                   addr: &mut SocketAddrBuf,
-                                   overlapped: &mut Overlapped)
+                                   addr: *mut SocketAddrBuf,
+                                   overlapped: *mut OVERLAPPED)
                                    -> io::Result<Option<usize>>;
 
     /// Execute an overlapped send I/O operation on this UDP socket.
     ///
     /// This function will issue an overlapped I/O write (via `WSASendTo`) on
     /// this socket to the address specified by `addr`. The provided buffer will
-    /// be written when the operation completes and the given `Overlapped`
+    /// be written when the operation completes and the given `OVERLAPPED`
     /// instance is used to track the overlapped operation.
     ///
     /// If the operation succeeds, `Ok(true)` is returned. If the operation
@@ -223,7 +227,7 @@ pub trait UdpSocketExt {
     unsafe fn send_to_overlapped(&self,
                                  buf: &[u8],
                                  addr: &SocketAddr,
-                                 overlapped: &mut Overlapped)
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<Option<usize>>;
 
     /// Calls the `GetOverlappedResult` function to get the result of an
@@ -239,12 +243,13 @@ pub trait UdpSocketExt {
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
-    /// pointer to an `Overlapped` instance.
+    /// pointer to an `OVERLAPPED` instance.
     ///
     /// # Panics
     ///
     /// This function will panic
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `TcpBuilder` type in the `net2` library.
@@ -274,8 +279,10 @@ pub trait TcpBuilderExt {
     /// To safely use this function callers must ensure that this pointer is
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
-    unsafe fn connect_overlapped(&self, addr: &SocketAddr, buf: &[u8],
-                                 overlapped: &mut Overlapped)
+    unsafe fn connect_overlapped(&self,
+                                 addr: &SocketAddr,
+                                 buf: &[u8],
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<(TcpStream, Option<usize>)>;
 
     /// Calls the `GetOverlappedResult` function to get the result of an
@@ -291,12 +298,13 @@ pub trait TcpBuilderExt {
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
-    /// pointer to an `Overlapped` instance.
+    /// pointer to an `OVERLAPPED` instance.
     ///
     /// # Panics
     ///
     /// This function will panic
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)>;
 }
 
 /// Additional methods for the `TcpListener` type in the standard library.
@@ -329,8 +337,8 @@ pub trait TcpListenerExt {
     /// ports and waiting to receive the completion notification on the port.
     unsafe fn accept_overlapped(&self,
                                 socket: &TcpBuilder,
-                                addrs: &mut AcceptAddrsBuf,
-                                overlapped: &mut Overlapped)
+                                addrs: *mut AcceptAddrsBuf,
+                                overlapped: *mut OVERLAPPED)
                                 -> io::Result<(TcpStream, Option<usize>)>;
 
     /// Once an `accept_overlapped` has finished, this function needs to be
@@ -354,12 +362,13 @@ pub trait TcpListenerExt {
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
-    /// pointer to an `Overlapped` instance.
+    /// pointer to an `OVERLAPPED` instance.
     ///
     /// # Panics
     ///
     /// This function will panic
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)>;
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)>;
 }
 
 #[doc(hidden)]
@@ -449,11 +458,12 @@ unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
     }
 }
 
-unsafe fn result(socket: SOCKET, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+unsafe fn result(socket: SOCKET, overlapped: *mut OVERLAPPED)
+                 -> io::Result<(usize, u32)> {
     let mut transferred = 0;
     let mut flags = 0;
     let r = WSAGetOverlappedResult(socket,
-                                   (*overlapped).raw(),
+                                   overlapped,
                                    &mut transferred,
                                    FALSE,
                                    &mut flags);
@@ -465,27 +475,33 @@ unsafe fn result(socket: SOCKET, overlapped: *mut Overlapped) -> io::Result<(usi
 }
 
 impl TcpStreamExt for TcpStream {
-    unsafe fn read_overlapped(&self, buf: &mut [u8],
-                              overlapped: &mut Overlapped) -> io::Result<Option<usize>> {
+    unsafe fn read_overlapped(&self,
+                              buf: &mut [u8],
+                              overlapped: *mut OVERLAPPED)
+                              -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut flags = 0;
         let mut bytes_read: DWORD = 0;
         let r = WSARecv(self.as_raw_socket(), &mut buf, 1,
-                        &mut bytes_read, &mut flags, overlapped.raw(), None);
+                        &mut bytes_read, &mut flags, overlapped, None);
         cvt(r, bytes_read)
     }
 
-    unsafe fn write_overlapped(&self, buf: &[u8],
-                               overlapped: &mut Overlapped) -> io::Result<Option<usize>> {
+    unsafe fn write_overlapped(&self,
+                               buf: &[u8],
+                               overlapped: *mut OVERLAPPED)
+                               -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut bytes_written: DWORD = 0;
         let r = WSASend(self.as_raw_socket(), &mut buf, 1,
-                        &mut bytes_written, 0, overlapped.raw(), None);
+                        &mut bytes_written, 0, overlapped, None);
         cvt(r, bytes_written)
     }
 
-    unsafe fn connect_overlapped(&self, addr: &SocketAddr, buf: &[u8],
-                                 overlapped: &mut Overlapped)
+    unsafe fn connect_overlapped(&self,
+                                 addr: &SocketAddr,
+                                 buf: &[u8],
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<Option<usize>> {
         connect_overlapped(self.as_raw_socket(), addr, buf, overlapped)
     }
@@ -506,13 +522,17 @@ impl TcpStreamExt for TcpStream {
         }
     }
 
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)> {
         result(self.as_raw_socket(), overlapped)
     }
 }
 
-unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr, buf: &[u8],
-                             overlapped: &mut Overlapped) -> io::Result<Option<usize>> {
+unsafe fn connect_overlapped(socket: SOCKET,
+                             addr: &SocketAddr,
+                             buf: &[u8],
+                             overlapped: *mut OVERLAPPED)
+                             -> io::Result<Option<usize>> {
     static CONNECTEX: WsaExtension = WsaExtension {
         guid: GUID {
             Data1: 0x25a207b9,
@@ -535,7 +555,7 @@ unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr, buf: &[u8],
     let r = connect_ex(socket, addr_buf, addr_len,
                        buf.as_ptr() as *mut _,
                        buf.len() as u32,
-                       &mut bytes_sent, overlapped.raw());
+                       &mut bytes_sent, overlapped);
     if r == TRUE {
         Ok(Some(bytes_sent as usize))
     } else {
@@ -546,24 +566,24 @@ unsafe fn connect_overlapped(socket: SOCKET, addr: &SocketAddr, buf: &[u8],
 impl UdpSocketExt for UdpSocket {
     unsafe fn recv_from_overlapped(&self,
                                    buf: &mut [u8],
-                                   addr: &mut SocketAddrBuf,
-                                   overlapped: &mut Overlapped)
+                                   addr: *mut SocketAddrBuf,
+                                   overlapped: *mut OVERLAPPED)
                                    -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut flags = 0;
         let mut received_bytes: DWORD = 0;
         let r = WSARecvFrom(self.as_raw_socket(), &mut buf, 1,
                             &mut received_bytes, &mut flags,
-                            &mut addr.buf as *mut _ as *mut _,
-                            &mut addr.len,
-                            overlapped.raw(), None);
+                            &mut (*addr).buf as *mut _ as *mut _,
+                            &mut (*addr).len,
+                            overlapped, None);
         cvt(r, received_bytes)
     }
 
     unsafe fn send_to_overlapped(&self,
                                  buf: &[u8],
                                  addr: &SocketAddr,
-                                 overlapped: &mut Overlapped)
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<Option<usize>> {
         let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
         let mut buf = slice2buf(buf);
@@ -571,25 +591,29 @@ impl UdpSocketExt for UdpSocket {
         let r = WSASendTo(self.as_raw_socket(), &mut buf, 1,
                           &mut sent_bytes, 0,
                           addr_buf as *const _, addr_len,
-                          overlapped.raw(), None);
+                          overlapped, None);
         cvt(r, sent_bytes)
     }
 
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)> {
         result(self.as_raw_socket(), overlapped)
     }
 }
 
 impl TcpBuilderExt for TcpBuilder {
-    unsafe fn connect_overlapped(&self, addr: &SocketAddr, buf: &[u8],
-                                 overlapped: &mut Overlapped)
+    unsafe fn connect_overlapped(&self,
+                                 addr: &SocketAddr,
+                                 buf: &[u8],
+                                 overlapped: *mut OVERLAPPED)
                                  -> io::Result<(TcpStream, Option<usize>)> {
         connect_overlapped(self.as_raw_socket(), addr, buf, overlapped).map(|s| {
             (self.to_tcp_stream().unwrap(), s)
         })
     }
 
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)> {
         result(self.as_raw_socket(), overlapped)
     }
 }
@@ -597,8 +621,8 @@ impl TcpBuilderExt for TcpBuilder {
 impl TcpListenerExt for TcpListener {
     unsafe fn accept_overlapped(&self,
                                 socket: &TcpBuilder,
-                                addrs: &mut AcceptAddrsBuf,
-                                overlapped: &mut Overlapped)
+                                addrs: *mut AcceptAddrsBuf,
+                                overlapped: *mut OVERLAPPED)
                                 -> io::Result<(TcpStream, Option<usize>)> {
         static ACCEPTEX: WsaExtension = WsaExtension {
             guid: GUID {
@@ -618,9 +642,9 @@ impl TcpListenerExt for TcpListener {
         let accept_ex = mem::transmute::<_, AcceptEx>(ptr);
 
         let mut bytes = 0;
-        let (a, b, c, d) = addrs.args();
+        let (a, b, c, d) = (*addrs).args();
         let r = accept_ex(self.as_raw_socket(), socket.as_raw_socket(),
-                          a, b, c, d, &mut bytes, overlapped.raw());
+                          a, b, c, d, &mut bytes, overlapped);
         let succeeded = if r == TRUE {
             Some(bytes as usize)
         } else {
@@ -648,7 +672,8 @@ impl TcpListenerExt for TcpListener {
         }
     }
 
-    unsafe fn result(&self, overlapped: *mut Overlapped) -> io::Result<(usize, u32)> {
+    unsafe fn result(&self, overlapped: *mut OVERLAPPED)
+                     -> io::Result<(usize, u32)> {
         result(self.as_raw_socket(), overlapped)
     }
 }
@@ -802,14 +827,14 @@ mod tests {
             t!(cp.add_socket(1, &s));
 
             let mut b = [0; 10];
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             unsafe {
-                t!(s.read_overlapped(&mut b, &mut a));
+                t!(s.read_overlapped(&mut b, a.raw()));
             }
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
             assert_eq!(&b[0..3], &[1, 2, 3]);
 
             t!(t.join());
@@ -834,14 +859,14 @@ mod tests {
             t!(cp.add_socket(1, &s));
 
             let b = [1, 2, 3];
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             unsafe {
-                t!(s.write_overlapped(&b, &mut a));
+                t!(s.write_overlapped(&b, a.raw()));
             }
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
 
             t!(t.join());
         })
@@ -863,15 +888,15 @@ mod tests {
             };
             t!(cp.add_socket(1, &builder));
 
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             t!(builder.bind(addr_template));
             let (s, _) = unsafe {
-                t!(builder.connect_overlapped(&addr, &[], &mut a))
+                t!(builder.connect_overlapped(&addr, &[], a.raw()))
             };
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 0);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
             t!(s.connect_complete());
 
             t!(t.join());
@@ -893,15 +918,15 @@ mod tests {
             t!(cp.add_socket(1, &b));
 
             let mut buf = [0; 10];
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             let mut addr = SocketAddrBuf::new();
             unsafe {
-                t!(b.recv_from_overlapped(&mut buf, &mut addr, &mut a));
+                t!(b.recv_from_overlapped(&mut buf, &mut addr, a.raw()));
             }
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
             assert_eq!(&buf[..3], &[1, 2, 3]);
             assert_eq!(addr.to_socket_addr(), Some(a_addr));
 
@@ -927,14 +952,14 @@ mod tests {
             let cp = t!(CompletionPort::new(1));
             t!(cp.add_socket(1, &b));
 
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             unsafe {
-                t!(b.send_to_overlapped(&[1, 2, 3], &a_addr, &mut a));
+                t!(b.send_to_overlapped(&[1, 2, 3], &a_addr, a.raw()));
             }
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
 
             t!(t.join());
         })
@@ -957,15 +982,15 @@ mod tests {
             };
             t!(cp.add_socket(1, &l));
 
-            let mut a = Overlapped::zero();
+            let a = Overlapped::zero();
             let mut addrs = AcceptAddrsBuf::new();
             let (s, _) = unsafe {
-                t!(l.accept_overlapped(&builder, &mut addrs, &mut a))
+                t!(l.accept_overlapped(&builder, &mut addrs, a.raw()))
             };
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 0);
             assert_eq!(status.token(), 1);
-            assert_eq!(status.overlapped(), &mut a as *mut _);
+            assert_eq!(status.overlapped(), a.raw());
             t!(l.accept_complete(&s));
 
             let (remote, local) = t!(t.join());

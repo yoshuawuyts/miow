@@ -241,8 +241,8 @@ impl CompletionStatus {
 
     /// Returns a pointer to the `Overlapped` structure that was specified when
     /// the I/O operation was started.
-    pub fn overlapped(&self) -> *mut Overlapped {
-        self.0.lpOverlapped as *mut _
+    pub fn overlapped(&self) -> *mut OVERLAPPED {
+        self.0.lpOverlapped
     }
 
     /// Returns a pointer to the internal `OVERLAPPED_ENTRY` object.
@@ -254,6 +254,8 @@ impl CompletionStatus {
 #[cfg(test)]
 mod tests {
     use std::mem;
+    use std::time::Duration;
+
     use winapi::*;
 
     use iocp::{CompletionPort, CompletionStatus};
@@ -272,7 +274,7 @@ mod tests {
     #[test]
     fn timeout() {
         let c = CompletionPort::new(1).unwrap();
-        let err = c.get(Some(1)).unwrap_err();
+        let err = c.get(Some(Duration::from_millis(1))).unwrap_err();
         assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as i32));
     }
 
