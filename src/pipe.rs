@@ -220,9 +220,10 @@ impl NamedPipe {
     /// with data and the request is tracked by the `overlapped` function
     /// provided.
     ///
-    /// If the operation succeeds immediately, `Ok(true)` is returned. If an
-    /// asynchronous operation is enqueued, then `Ok(false)` is returned.
-    /// Otherwise if an error occurred it is returned.
+    /// If the operation succeeds immediately, `Ok(Some(n))` is returned where
+    /// `n` is the number of bytes read. If an asynchronous operation is
+    /// enqueued, then `Ok(None)` is returned. Otherwise if an error occurred
+    /// it is returned.
     ///
     /// When this operation completes (or if it completes immediately), another
     /// mechanism must be used to learn how many bytes were transferred (such as
@@ -241,7 +242,7 @@ impl NamedPipe {
     pub unsafe fn read_overlapped(&self,
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
-                                  -> io::Result<bool> {
+                                  -> io::Result<Option<usize>> {
         self.0.read_overlapped(buf, overlapped)
     }
 
@@ -252,9 +253,10 @@ impl NamedPipe {
     /// with data and the request is tracked by the `overlapped` function
     /// provided.
     ///
-    /// If the operation succeeds immediately, `Ok(true)` is returned. If an
-    /// asynchronous operation is enqueued, then `Ok(false)` is returned.
-    /// Otherwise if an error occurred it is returned.
+    /// If the operation succeeds immediately, `Ok(Some(n))` is returned where
+    /// `n` is the number of bytes written. If an asynchronous operation is
+    /// enqueued, then `Ok(None)` is returned. Otherwise if an error occurred
+    /// it is returned.
     ///
     /// When this operation completes (or if it completes immediately), another
     /// mechanism must be used to learn how many bytes were transferred (such as
@@ -273,7 +275,7 @@ impl NamedPipe {
     pub unsafe fn write_overlapped(&self,
                                    buf: &[u8],
                                    overlapped: *mut OVERLAPPED)
-                                   -> io::Result<bool> {
+                                   -> io::Result<Option<usize>> {
         self.0.write_overlapped(buf, overlapped)
     }
 

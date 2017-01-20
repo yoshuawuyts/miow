@@ -47,32 +47,40 @@ impl Handle {
 
     pub unsafe fn read_overlapped(&self, buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
-                                  -> io::Result<bool> {
+                                  -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let mut bytes = 0;
         let res = ::cvt({
-            ReadFile(self.0, buf.as_mut_ptr() as *mut _, len, 0 as *mut _,
+            ReadFile(self.0,
+                     buf.as_mut_ptr() as *mut _,
+                     len,
+                     &mut bytes,
                      overlapped)
         });
         match res {
-            Ok(_) => Ok(true),
+            Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32)
-                => Ok(false),
+                => Ok(None),
             Err(e) => Err(e),
         }
     }
 
     pub unsafe fn write_overlapped(&self, buf: &[u8],
                                    overlapped: *mut OVERLAPPED)
-                                   -> io::Result<bool> {
+                                   -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
+        let mut bytes = 0;
         let res = ::cvt({
-            WriteFile(self.0, buf.as_ptr() as *const _, len, 0 as *mut _,
+            WriteFile(self.0,
+                      buf.as_ptr() as *const _,
+                      len,
+                      &mut bytes,
                       overlapped)
         });
         match res {
-            Ok(_) => Ok(true),
+            Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32)
-                => Ok(false),
+                => Ok(None),
             Err(e) => Err(e),
         }
     }
