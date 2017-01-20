@@ -4,6 +4,7 @@ use std::cmp;
 use std::io;
 use std::mem;
 use std::os::windows::io::*;
+use std::time::Duration;
 
 use handle::Handle;
 use winapi::*;
@@ -94,17 +95,17 @@ impl CompletionPort {
     /// semantics on when this function returns depends on the concurrency value
     /// specified when the port was created.
     ///
-    /// A timeout (in milliseconds) can optionally be specified to this
-    /// function. If `None` is provided this function will not time out, and
-    /// otherwise it will time out after the specified duration has passed.
+    /// A timeout can optionally be specified to this function. If `None` is
+    /// provided this function will not time out, and otherwise it will time out
+    /// after the specified duration has passed.
     ///
     /// On success this will return the status message which was dequeued from
     /// this completion port.
-    pub fn get(&self, timeout_ms: Option<u32>) -> io::Result<CompletionStatus> {
+    pub fn get(&self, timeout: Option<Duration>) -> io::Result<CompletionStatus> {
         let mut bytes = 0;
         let mut token = 0;
         let mut overlapped = 0 as *mut _;
-        let timeout = timeout_ms.unwrap_or(INFINITE);
+        let timeout = dur2ms(timeout);
         let ret = unsafe {
             GetQueuedCompletionStatus(self.handle.raw(),
                                       &mut bytes,
@@ -133,13 +134,13 @@ impl CompletionPort {
     /// Like with `get`, a timeout may be specified for this operation.
     pub fn get_many<'a>(&self,
                         list: &'a mut [CompletionStatus],
-                        timeout_ms: Option<u32>)
+                        timeout: Option<Duration>)
                         -> io::Result<&'a mut [CompletionStatus]>
     {
         debug_assert_eq!(mem::size_of::<CompletionStatus>(),
                          mem::size_of::<OVERLAPPED_ENTRY>());
         let mut removed = 0;
-        let timeout = timeout_ms.unwrap_or(INFINITE);
+        let timeout = dur2ms(timeout);
         let len = cmp::min(list.len(), <ULONG>::max_value() as usize) as ULONG;
         let ret = unsafe {
             GetQueuedCompletionStatusEx(self.handle.raw(),
@@ -169,6 +170,20 @@ impl CompletionPort {
         };
         ::cvt(ret).map(|_| ())
     }
+}
+
+fn dur2ms(dur: Option<Duration>) -> u32 {
+    let dur = match dur {
+        Some(dur) => dur,
+        None => return INFINITE,
+    };
+    let ms = dur.as_secs().checked_mul(1_000);
+    let ms_extra = dur.subsec_nanos() / 1_000_000;
+    ms.and_then(|ms| {
+        ms.checked_add(ms_extra as u64)
+    }).map(|ms| {
+        cmp::min(u32::max_value() as u64, ms) as u32
+    }).unwrap_or(INFINITE - 1)
 }
 
 impl AsRawHandle for CompletionPort {
