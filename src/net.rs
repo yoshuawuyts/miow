@@ -201,6 +201,39 @@ pub trait UdpSocketExt {
                                    overlapped: *mut OVERLAPPED)
                                    -> io::Result<Option<usize>>;
 
+    /// Execute an overlapped receive I/O operation on this UDP socket.
+    ///
+    /// This function will issue an overlapped I/O read (via `WSARecv`) on
+    /// this socket. The provided buffer will be filled in when the operation
+    /// completes, the source from where the data came from will be written to
+    /// `addr`, and the given `OVERLAPPED` instance is used to track the
+    /// overlapped operation.
+    ///
+    /// If the operation succeeds, `Ok(Some(n))` is returned where `n` is the
+    /// number of bytes that were read. If the operation returns an error
+    /// indicating that the I/O is currently pending, `Ok(None)` is returned.
+    /// Otherwise, the error associated with the operation is returned and no
+    /// overlapped operation is enqueued.
+    ///
+    /// The number of bytes read will be returned as part of the completion
+    /// notification when the I/O finishes.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe because the kernel requires that the `buf`,
+    /// and `overlapped` pointers are valid until the end of the I/O
+    /// operation. The kernel also requires that `overlapped` is unique for this
+    /// I/O operation and is not in use for any other I/O.
+    ///
+    /// To safely use this function callers must ensure that these two input
+    /// pointers are valid until the I/O operation is completed, typically via
+    /// completion ports and waiting to receive the completion notification on
+    /// the port.
+    unsafe fn recv_overlapped(&self,
+                              buf: &mut [u8],
+                              overlapped: *mut OVERLAPPED)
+                              -> io::Result<Option<usize>>;
+
     /// Execute an overlapped send I/O operation on this UDP socket.
     ///
     /// This function will issue an overlapped I/O write (via `WSASendTo`) on
@@ -234,6 +267,38 @@ pub trait UdpSocketExt {
                                  overlapped: *mut OVERLAPPED)
                                  -> io::Result<Option<usize>>;
 
+    /// Execute an overlapped send I/O operation on this UDP socket.
+    ///
+    /// This function will issue an overlapped I/O write (via `WSASend`) on
+    /// this socket to the address it was previously connected to. The provided 
+    /// buffer will be written when the operation completes and the given `OVERLAPPED`
+    /// instance is used to track the overlapped operation.
+    ///
+    /// If the operation succeeds, `Ok(Some(n0)` is returned where `n` byte
+    /// were written. If the operation returns an error indicating that the I/O
+    /// is currently pending, `Ok(None)` is returned. Otherwise, the error
+    /// associated with the operation is returned and no overlapped operation
+    /// is enqueued.
+    ///
+    /// The number of bytes written will be returned as part of the completion
+    /// notification when the I/O finishes.
+    ///
+    /// # Unsafety
+    ///
+    /// This function is unsafe because the kernel requires that the `buf` and
+    /// `overlapped` pointers are valid until the end of the I/O operation. The
+    /// kernel also requires that `overlapped` is unique for this I/O operation
+    /// and is not in use for any other I/O.
+    ///
+    /// To safely use this function callers must ensure that these two input
+    /// pointers are valid until the I/O operation is completed, typically via
+    /// completion ports and waiting to receive the completion notification on
+    /// the port.
+    unsafe fn send_overlapped(&self,
+                                 buf: &[u8],
+                                 overlapped: *mut OVERLAPPED)
+                                 -> io::Result<Option<usize>>;
+ 
     /// Calls the `GetOverlappedResult` function to get the result of an
     /// overlapped operation for this handle.
     ///
@@ -606,6 +671,19 @@ impl UdpSocketExt for UdpSocket {
         cvt(r, received_bytes)
     }
 
+    unsafe fn recv_overlapped(&self,
+                              buf: &mut [u8],
+                              overlapped: *mut OVERLAPPED)
+                              -> io::Result<Option<usize>> {
+        let mut buf = slice2buf(buf);
+        let mut flags = 0;
+        let mut received_bytes: DWORD = 0;
+        let r = WSARecv(self.as_raw_socket(), &mut buf, 1,
+                            &mut received_bytes, &mut flags,
+                            overlapped, None);
+        cvt(r, received_bytes)
+    }
+
     unsafe fn send_to_overlapped(&self,
                                  buf: &[u8],
                                  addr: &SocketAddr,
@@ -617,6 +695,18 @@ impl UdpSocketExt for UdpSocket {
         let r = WSASendTo(self.as_raw_socket(), &mut buf, 1,
                           &mut sent_bytes, 0,
                           addr_buf as *const _, addr_len,
+                          overlapped, None);
+        cvt(r, sent_bytes)
+    }
+
+    unsafe fn send_overlapped(&self,
+                              buf: &[u8],
+                              overlapped: *mut OVERLAPPED)
+                              -> io::Result<Option<usize>> {
+        let mut buf = slice2buf(buf);
+        let mut sent_bytes = 0;
+        let r = WSASend(self.as_raw_socket(), &mut buf, 1,
+                          &mut sent_bytes, 0,
                           overlapped, None);
         cvt(r, sent_bytes)
     }
@@ -962,6 +1052,37 @@ mod tests {
     }
 
     #[test]
+    fn udp_recv() {
+        each_ip(&mut |addr| {
+            let a = t!(UdpSocket::bind(addr));
+            let b = t!(UdpSocket::bind(addr));
+            let a_addr = t!(a.local_addr());
+            let b_addr = t!(b.local_addr());
+            assert!(b.connect(a_addr).is_ok());
+            assert!(a.connect(b_addr).is_ok());
+            let t = thread::spawn(move || {
+                t!(a.send_to(&[1, 2, 3], b_addr));
+            });
+
+            let cp = t!(CompletionPort::new(1));
+            t!(cp.add_socket(1, &b));
+
+            let mut buf = [0; 10];
+            let a = Overlapped::zero();
+            unsafe {
+                t!(b.recv_overlapped(&mut buf, a.raw()));
+            }
+            let status = t!(cp.get(None));
+            assert_eq!(status.bytes_transferred(), 3);
+            assert_eq!(status.token(), 1);
+            assert_eq!(status.overlapped(), a.raw());
+            assert_eq!(&buf[..3], &[1, 2, 3]);
+
+            t!(t.join());
+        })
+    }
+
+    #[test]
     fn udp_send_to() {
         each_ip(&mut |addr| {
             let a = t!(UdpSocket::bind(addr));
@@ -982,6 +1103,39 @@ mod tests {
             let a = Overlapped::zero();
             unsafe {
                 t!(b.send_to_overlapped(&[1, 2, 3], &a_addr, a.raw()));
+            }
+            let status = t!(cp.get(None));
+            assert_eq!(status.bytes_transferred(), 3);
+            assert_eq!(status.token(), 1);
+            assert_eq!(status.overlapped(), a.raw());
+
+            t!(t.join());
+        })
+    }
+
+    #[test]
+    fn udp_send() {
+        each_ip(&mut |addr| {
+            let a = t!(UdpSocket::bind(addr));
+            let b = t!(UdpSocket::bind(addr));
+            let a_addr = t!(a.local_addr());
+            let b_addr = t!(b.local_addr());
+            assert!(b.connect(a_addr).is_ok());
+            assert!(a.connect(b_addr).is_ok());
+            let t = thread::spawn(move || {
+                let mut b = [0; 100];
+                let (n, addr) = t!(a.recv_from(&mut b));
+                assert_eq!(n, 3);
+                assert_eq!(addr, b_addr);
+                assert_eq!(&b[..3], &[1, 2, 3]);
+            });
+
+            let cp = t!(CompletionPort::new(1));
+            t!(cp.add_socket(1, &b));
+
+            let a = Overlapped::zero();
+            unsafe {
+                t!(b.send_overlapped(&[1, 2, 3], a.raw()));
             }
             let status = t!(cp.get(None));
             assert_eq!(status.bytes_transferred(), 3);
