@@ -2,6 +2,8 @@ use std::{mem, io};
 
 use winapi::*;
 
+use hresult_from_nt;
+
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
 #[derive(Debug)]
@@ -76,22 +78,13 @@ impl Overlapped {
     /// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364988(v=vs.85).aspx
     /// by msdn. We therefore judge it to be de-facto stable.
     pub fn status(&self) -> io::Result<()> {
-        println!("{:X}", self.0.Internal);
-        if self.0.Internal >= (1 << mem::size_of::<ntdef::NTSTATUS>() * 8) {
-            // The documentation is unclear about what exactly might someday end up in this field.
-            return Err(io::Error::new(io::ErrorKind::Other, "unknown error"));
-        }
-
-        let status = self.0.Internal as ntdef::NTSTATUS;
-        if status == ntstatus::STATUS_SUCCESS {
+        if self.0.Internal == STATUS_SUCCESS as ULONG_PTR {
             Ok(())
+        } else if self.0.Internal >= (1 << mem::size_of::<NTSTATUS>() * 8) {
+            // The documentation is unclear about what exactly might someday end up in this field.
+            Err(io::Error::new(io::ErrorKind::Other, "unknown error"))
         } else {
-            Err(io::Error::from_raw_os_error(hresult_from_nt(status)))
+            Err(io::Error::from_raw_os_error(hresult_from_nt(self.0.Internal as NTSTATUS)))
         }
     }
-}
-
-fn hresult_from_nt(x: ntdef::NTSTATUS) -> winerror::HRESULT {
-    const FACILITY_NT_BIT: winerror::HRESULT = 0x1000_0000;
-    x | FACILITY_NT_BIT
 }
