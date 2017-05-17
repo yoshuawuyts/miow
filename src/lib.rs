@@ -9,6 +9,9 @@ extern crate kernel32;
 extern crate net2;
 extern crate winapi;
 extern crate ws2_32;
+extern crate libloading as lib;
+#[macro_use]
+extern crate lazy_static;
 
 #[cfg(test)] extern crate rand;
 
@@ -54,4 +57,31 @@ fn dur2ms(dur: Option<Duration>) -> u32 {
     }).map(|ms| {
         cmp::min(u32::max_value() as u64, ms) as u32
     }).unwrap_or(INFINITE - 1)
+}
+
+lazy_static! {
+    // Guaranteed to always be in PATH
+    static ref NTDLL: lib::Library = lib::Library::new("ntdll.dll").unwrap();
+
+    // Guaranteed to be available since Windows XP/Server 2003 per
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms680600(v=vs.85).aspx
+    static ref RtlNtStatusToDosError: extern fn(NTSTATUS) -> ULONG = unsafe {
+        let x: lib::Symbol<extern fn(NTSTATUS) -> ULONG> = NTDLL.get(b"RtlNtStatusToDosError\0").unwrap();
+        *x.into_raw()
+    };
+}
+
+const FACILITY_NT_BIT: HRESULT = 0x1000_0000;
+
+/// Convert an `NTSTATUS` into a normalized `HRESULT`.
+///
+/// Ensures that `std::io::Error::from_raw_os_error` produces
+/// something that can be easily matched on.
+fn hresult_from_nt(nt: NTSTATUS) -> HRESULT {
+    let out = RtlNtStatusToDosError(nt);
+    if out == ERROR_MR_MID_NOT_FOUND {
+        nt | FACILITY_NT_BIT
+    } else {
+        out as HRESULT
+    }
 }

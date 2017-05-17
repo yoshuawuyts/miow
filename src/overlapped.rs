@@ -1,6 +1,8 @@
-use std::mem;
+use std::{mem, io};
 
 use winapi::*;
+
+use hresult_from_nt;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
@@ -62,5 +64,27 @@ impl Overlapped {
     /// Reads the `hEvent` field of this structure, may return null.
     pub fn event(&self) -> HANDLE {
         self.0.hEvent
+    }
+
+    /// Returns the status of the last I/O operation associated with
+    /// this structure, or Ok(()) if none has yet been associated.
+    ///
+    /// Per the documentation at
+    /// https://msdn.microsoft.com/en-us/library/windows/desktop/ms684342(v=vs.85).aspx
+    /// this operates via the Internal member. While this is
+    /// documented as unstable, its use is necessary when
+    /// GetQueuedCompletionStatusEx is used, and recommended in
+    /// multiple instances including
+    /// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364988(v=vs.85).aspx
+    /// by msdn. We therefore judge it to be de-facto stable.
+    pub fn status(&self) -> io::Result<()> {
+        if self.0.Internal == STATUS_SUCCESS as ULONG_PTR {
+            Ok(())
+        } else if self.0.Internal >= (1 << mem::size_of::<NTSTATUS>() * 8) {
+            // The documentation is unclear about what exactly might someday end up in this field.
+            Err(io::Error::new(io::ErrorKind::Other, "unknown error"))
+        } else {
+            Err(io::Error::from_raw_os_error(hresult_from_nt(self.0.Internal as NTSTATUS)))
+        }
     }
 }
