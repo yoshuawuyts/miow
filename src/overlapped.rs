@@ -1,11 +1,18 @@
+use std::fmt;
 use std::mem;
 
-use winapi::*;
+use winapi::shared::ntdef::HANDLE;
+use winapi::um::minwinbase::*;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
-#[derive(Debug)]
 pub struct Overlapped(OVERLAPPED);
+
+impl fmt::Debug for Overlapped {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "OVERLAPPED")
+    }
+}
 
 unsafe impl Send for Overlapped {}
 unsafe impl Sync for Overlapped {}
@@ -43,13 +50,15 @@ impl Overlapped {
     /// handles that are on a seeking device that supports the concept of an
     /// offset.
     pub fn set_offset(&mut self, offset: u64) {
-        self.0.Offset = offset as u32;
-        self.0.OffsetHigh = (offset >> 32) as u32;
+        let s = unsafe { self.0.u.s_mut() };
+        s.Offset = offset as u32;
+        s.OffsetHigh = (offset >> 32) as u32;
     }
 
     /// Reads the offset inside this overlapped structure.
     pub fn offset(&self) -> u64 {
-        (self.0.Offset as u64) | ((self.0.OffsetHigh as u64) << 32)
+        let s = unsafe { self.0.u.s() };
+        (s.Offset as u64) | ((s.OffsetHigh as u64) << 32)
     }
 
     /// Sets the `hEvent` field of this structure.
