@@ -12,6 +12,7 @@ description = """
 A zero overhead I/O library for Windows, focusing on IOCP and Async I/O
 abstractions.
 """
+publish = false # needs a major version bump
 
 [dependencies]
 winapi = { version = "0.3.2", features = ["std", "fileapi", "handleapi", "ioapiset", "minwindef", "namedpipeapi", "ntdef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
