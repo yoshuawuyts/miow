@@ -8,8 +8,15 @@ use std::os::windows::ffi::*;
 use std::os::windows::io::*;
 use std::time::Duration;
 
-use winapi::*;
-use kernel32::*;
+use winapi::shared::ntdef::HANDLE;
+use winapi::shared::minwindef::*;
+use winapi::shared::winerror::*;
+use winapi::um::fileapi::*;
+use winapi::um::handleapi::*;
+use winapi::um::ioapiset::*;
+use winapi::um::minwinbase::*;
+use winapi::um::namedpipeapi::*;
+use winapi::um::winbase::*;
 use handle::Handle;
 
 /// Readable half of an anonymous pipe.

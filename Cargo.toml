@@ -14,10 +14,11 @@ abstractions.
 """
 
 [dependencies]
-winapi = "0.2"
-kernel32-sys = "0.2"
-ws2_32-sys = "0.2"
+winapi = { version = "0.3.2", features = ["std", "fileapi", "handleapi", "ioapiset", "minwindef", "namedpipeapi", "ntdef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
 net2 = { version = "0.2.5", default-features = false }
 
 [dev-dependencies]
 rand = "0.3"
+
+[replace]
+"winapi:0.3.2" = { git = "https://github.com/retep998/winapi-rs", branch = "0.3" }

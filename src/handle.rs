@@ -1,8 +1,12 @@
 use std::io;
 use std::cmp;
 
-use winapi::*;
-use kernel32::*;
+use winapi::shared::minwindef::*;
+use winapi::shared::ntdef::HANDLE;
+use winapi::shared::winerror::*;
+use winapi::um::fileapi::*;
+use winapi::um::handleapi::*;
+use winapi::um::minwinbase::*;
 
 #[derive(Debug)]
 pub struct Handle(HANDLE);
