@@ -12,28 +12,15 @@ use std::net::{SocketAddrV4, Ipv4Addr, SocketAddrV6, Ipv6Addr};
 use std::os::windows::prelude::*;
 
 use winapi::ctypes::*;
-use winapi::um::minwinbase::*;
-use winapi::um::winsock2::*;
 use winapi::shared::guiddef::*;
 use winapi::shared::minwindef::*;
-use winapi::shared::minwindef::{FALSE, TRUE, ULONG, USHORT};
+use winapi::shared::minwindef::{FALSE, TRUE};
 use winapi::shared::ntdef::*;
 use winapi::shared::ws2def::*;
 use winapi::shared::ws2def::SOL_SOCKET;
-
-#[allow(dead_code)]
-#[repr(C)]
-struct SOCKADDR_IN6_LH {
-    sin6_family: ADDRESS_FAMILY,
-    sin6_port: USHORT,
-    sin6_flowinfo: ULONG,
-    sin6_addr: IN6_ADDR,
-    sin6_scope_id: ULONG,
-}
-
-struct IN6_ADDR {
-    u: [u8; 16],
-}
+use winapi::shared::ws2ipdef::*;
+use winapi::um::minwinbase::*;
+use winapi::um::winsock2::*;
 
 /// A type to represent a buffer in which a socket address will be stored.
 ///
@@ -490,7 +477,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR,
         }
         AF_INET6 if len as usize >= mem::size_of::<SOCKADDR_IN6_LH>() => {
             let b = &*(ptr as *const SOCKADDR_IN6_LH);
-            let arr = &b.sin6_addr.u;
+            let arr = b.sin6_addr.u.Byte();
             let ip = Ipv6Addr::new(
                 ((arr[0] as u16) << 8) | (arr[1] as u16),
                 ((arr[2] as u16) << 8) | (arr[3] as u16),
@@ -502,7 +489,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR,
                 ((arr[14] as u16) << 8) | (arr[15] as u16));
             let addr = SocketAddrV6::new(ip, ntoh(b.sin6_port),
                                          ntoh(b.sin6_flowinfo),
-                                         ntoh(b.sin6_scope_id));
+                                         ntoh(*b.u.sin6_scope_id()));
             Some(SocketAddr::V6(addr))
         }
         _ => None

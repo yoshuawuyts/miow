@@ -17,7 +17,7 @@ abstractions.
 socket2 = "0.3"
 
 [dependencies.winapi]
-version = "0.3.2"
+version = "0.3.3"
 features = [
   "std",
   "fileapi",
