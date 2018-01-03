@@ -22,6 +22,7 @@ use winapi::shared::ws2def::*;
 use winapi::shared::ws2def::SOL_SOCKET;
 
 #[allow(dead_code)]
+#[repr(C)]
 struct SOCKADDR_IN6_LH {
     sin6_family: ADDRESS_FAMILY,
     sin6_port: USHORT,
