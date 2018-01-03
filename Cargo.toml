@@ -14,7 +14,7 @@ abstractions.
 """
 
 [dependencies]
-socket2 = "0.2"
+socket2 = "0.3"
 
 [dependencies.winapi]
 version = "0.3.2"
