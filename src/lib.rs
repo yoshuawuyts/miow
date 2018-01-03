@@ -3,7 +3,7 @@
 #![cfg(windows)]
 #![deny(missing_docs)]
 #![allow(bad_style)]
-#![doc(html_root_url = "https://docs.rs/miow/0.1/x86_64-pc-windows-msvc/")]
+#![doc(html_root_url = "https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/")]
 
 extern crate socket2;
 extern crate winapi;
