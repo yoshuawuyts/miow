@@ -17,6 +17,7 @@ use std::time::Duration;
 use winapi::shared::minwindef::*;
 use winapi::um::winbase::*;
 
+#[cfg(test)]
 macro_rules! t {
     ($e:expr) => (match $e {
         Ok(e) => e,
