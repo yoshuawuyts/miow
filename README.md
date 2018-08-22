@@ -10,7 +10,7 @@ features.
 ```toml
 # Cargo.toml
 [dependencies]
-miow = "0.1"
+miow = "0.3"
 ```
 
 # License
@@ -27,5 +27,5 @@ at your option.
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in Serde by you, as defined in the Apache-2.0 license, shall be
+for inclusion in miow by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
