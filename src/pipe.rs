@@ -427,13 +427,23 @@ impl NamedPipeBuilder {
     /// This function will call the `CreateNamedPipe` function and return the
     /// result.
     pub fn create(&mut self) -> io::Result<NamedPipe> {
-        let h = unsafe {
-            CreateNamedPipeW(self.name.as_ptr(),
-                             self.dwOpenMode, self.dwPipeMode,
-                             self.nMaxInstances, self.nOutBufferSize,
-                             self.nInBufferSize, self.nDefaultTimeOut,
-                             0 as *mut _)
-        };
+        unsafe { self.with_security_attributes(::std::ptr::null_mut()) }
+    }
+
+    /// Using the options in the builder and the provided security attributes, attempt to create a
+    /// new named pipe. This function has to be called with a valid pointer to a
+    /// `SECURITY_ATTRIBUTES` struct that will stay valid for the lifetime of this function or a
+    /// null pointer.
+    ///
+    /// This function will call the `CreateNamedPipe` function and return the
+    /// result.
+    pub unsafe fn with_security_attributes(&mut self, attrs: *mut SECURITY_ATTRIBUTES) -> io::Result<NamedPipe> {
+        let h = CreateNamedPipeW(self.name.as_ptr(),
+                                 self.dwOpenMode, self.dwPipeMode,
+                                 self.nMaxInstances, self.nOutBufferSize,
+                                 self.nInBufferSize, self.nDefaultTimeOut,
+                                 attrs);
+
         if h == INVALID_HANDLE_VALUE {
             Err(io::Error::last_os_error())
         } else {
