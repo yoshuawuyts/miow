@@ -1,5 +1,6 @@
 use std::io;
 use std::cmp;
+use std::ptr;
 
 use winapi::shared::minwindef::*;
 use winapi::shared::ntdef::HANDLE;
@@ -53,17 +54,30 @@ impl Handle {
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        let mut bytes = 0;
         let res = ::cvt({
             ReadFile(self.0,
                      buf.as_mut_ptr() as *mut _,
                      len,
-                     &mut bytes,
+                     ptr::null_mut(),
                      overlapped)
         });
         match res {
-            Ok(_) => Ok(Some(bytes as usize)),
+            Ok(_) => (),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32)
+                => (),
+            Err(e) => return Err(e),
+        }
+
+        let mut bytes = 0;
+        let res = ::cvt({
+            GetOverlappedResult(self.0,
+                                overlapped,
+                                &mut bytes,
+                                false)
+        });
+        match res {
+            Ok(_) => Ok(Some(bytes as usize)),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32)
                 => Ok(None),
             Err(e) => Err(e),
         }
@@ -73,17 +87,30 @@ impl Handle {
                                    overlapped: *mut OVERLAPPED)
                                    -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        let mut bytes = 0;
         let res = ::cvt({
             WriteFile(self.0,
                       buf.as_ptr() as *const _,
                       len,
-                      &mut bytes,
+                      ptr::null_mut(),
                       overlapped)
         });
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32)
+                => Ok(None),
+            Err(e) => Err(e),
+        }
+
+        let mut bytes = 0;
+        let res = ::cvt({
+            GetOverlappedResult(self.0,
+                                overlapped,
+                                &mut bytes,
+                                false)
+        });
+        match res {
+            Ok(_) => Ok(Some(bytes as usize)),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32)
                 => Ok(None),
             Err(e) => Err(e),
         }
