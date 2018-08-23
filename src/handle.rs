@@ -50,8 +50,21 @@ impl Handle {
         Ok(bytes as usize)
     }
 
+    pub unsafe fn read_overlapped(&self, buf: &[u8],
+                                   overlapped: *mut OVERLAPPED)
+                                   -> io::Result<Option<usize>> {
+        self.read_overlapped_helper(buf, overlapped, FALSE)
+    }
+
+    pub unsafe fn read_overlapped_wait(&self, buf: &[u8],
+                                   overlapped: *mut OVERLAPPED)
+                                   -> io::Result<Option<usize>> {
+        self.read_overlapped_helper(buf, overlapped, TRUE)
+    }
+
     pub unsafe fn read_overlapped(&self, buf: &mut [u8],
-                                  overlapped: *mut OVERLAPPED)
+                                  overlapped: *mut OVERLAPPED,
+                                  wait: BOOLEAN)
                                   -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = ::cvt({
@@ -73,11 +86,11 @@ impl Handle {
             GetOverlappedResult(self.0,
                                 overlapped,
                                 &mut bytes,
-                                false)
+                                wait)
         });
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32)
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) and wait == FALSE
                 => Ok(None),
             Err(e) => Err(e),
         }
@@ -85,6 +98,19 @@ impl Handle {
 
     pub unsafe fn write_overlapped(&self, buf: &[u8],
                                    overlapped: *mut OVERLAPPED)
+                                   -> io::Result<Option<usize>> {
+        self.write_overlapped_helper(buf, overlapped, FALSE)
+    }
+
+    pub unsafe fn write_overlapped_wait(&self, buf: &[u8],
+                                   overlapped: *mut OVERLAPPED)
+                                   -> io::Result<Option<usize>> {
+        self.write_overlapped_helper(buf, overlapped, TRUE)
+    }
+
+    unsafe fn write_overlapped(&self, buf: &[u8],
+                                   overlapped: *mut OVERLAPPED,
+                                   wait: BOOLEAN)
                                    -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = ::cvt({
@@ -106,11 +132,11 @@ impl Handle {
             GetOverlappedResult(self.0,
                                 overlapped,
                                 &mut bytes,
-                                false)
+                                wait)
         });
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32)
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) and wait == FALSE
                 => Ok(None),
             Err(e) => Err(e),
         }

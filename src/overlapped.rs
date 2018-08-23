@@ -1,4 +1,5 @@
 use std::fmt;
+use std::io;
 use std::mem;
 
 use winapi::shared::ntdef::HANDLE;
@@ -24,6 +25,19 @@ impl Overlapped {
     /// notified via an I/O Completion Port.
     pub fn zero() -> Overlapped {
         Overlapped(unsafe { mem::zeroed() })
+    }
+
+    /// Creates a new `Overlapped` with an initialized non-null `hEvent`.  The caller is
+    /// responsible for calling `CloseHandle` on the `hEvent` field of the returned
+    /// `Overlapped`.
+    pub fn initialize_with_event() -> io::Result<Overlapped> {
+        let event = unsafe {CreateEvent(ptr::null(), TRUE, FALSE, ptr::null())});
+        if event == INVALID_HANDLE_VALUE {
+            return Err(io::Error::last_os_error());
+        }
+        let overlapped = Self::zero();
+        overlapped.set_event(event);
+        Ok(overlapped)
     }
 
     /// Creates a new `Overlapped` function pointer from the underlying
