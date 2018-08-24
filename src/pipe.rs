@@ -324,6 +324,8 @@ thread_local! {
     static NAMED_PIPE_OVERLAPPED: RefCell<Option<Overlapped>> = RefCell::new(None);
 }
 
+/// Call a function with a threadlocal `Overlapped`.  The function `f` should be
+/// sure that the event is reset, either manually or by a thread being released.
 fn with_threadlocal_overlapped<F>(f: F) -> io::Result<usize>
     where F: FnOnce(&Overlapped) -> io::Result<usize>
 {
@@ -605,6 +607,53 @@ mod tests {
         t!(a.write_all(&[1, 2, 3]));
         t!(a.flush());
         t!(a.disconnect());
+        t!(t.join());
+    }
+
+    #[test]
+    fn named_read_write_multi() {
+        for _ in 0..5 {
+            named_read_write()
+        }
+    }
+
+    #[test]
+    fn named_read_write_multi_same_thread() {
+        let name1 = name();
+        let mut a1 = t!(NamedPipe::new(&name1));
+        let name2 = name();
+        let mut a2 = t!(NamedPipe::new(&name2));
+
+        let t = thread::spawn(move || {
+            let mut f = t!(OpenOptions::new().read(true).write(true).open(name1));
+            t!(f.write_all(&[1, 2, 3]));
+            let mut b = [0; 10];
+            assert_eq!(t!(f.read(&mut b)), 3);
+            assert_eq!(&b[..3], &[1, 2, 3]);
+
+            let mut f = t!(OpenOptions::new().read(true).write(true).open(name2));
+            t!(f.write_all(&[1, 2, 3]));
+            let mut b = [0; 10];
+            assert_eq!(t!(f.read(&mut b)), 3);
+            assert_eq!(&b[..3], &[1, 2, 3]);
+        });
+
+        t!(a1.connect());
+        let mut b = [0; 10];
+        assert_eq!(t!(a1.read(&mut b)), 3);
+        assert_eq!(&b[..3], &[1, 2, 3]);
+        t!(a1.write_all(&[1, 2, 3]));
+        t!(a1.flush());
+        t!(a1.disconnect());
+
+        t!(a2.connect());
+        let mut b = [0; 10];
+        assert_eq!(t!(a2.read(&mut b)), 3);
+        assert_eq!(&b[..3], &[1, 2, 3]);
+        t!(a2.write_all(&[1, 2, 3]));
+        t!(a2.flush());
+        t!(a2.disconnect());
+
         t!(t.join());
     }
 
