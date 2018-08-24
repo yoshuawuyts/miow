@@ -1,9 +1,12 @@
 use std::fmt;
 use std::io;
 use std::mem;
+use std::ptr;
 
 use winapi::shared::ntdef::HANDLE;
+use winapi::um::handleapi::*;
 use winapi::um::minwinbase::*;
+use winapi::um::synchapi::*;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
@@ -31,11 +34,11 @@ impl Overlapped {
     /// responsible for calling `CloseHandle` on the `hEvent` field of the returned
     /// `Overlapped`.
     pub fn initialize_with_event() -> io::Result<Overlapped> {
-        let event = unsafe {CreateEvent(ptr::null(), TRUE, FALSE, ptr::null())});
+        let event = unsafe {CreateEventW(ptr::null_mut(), 1i32, 0i32, ptr::null())};
         if event == INVALID_HANDLE_VALUE {
             return Err(io::Error::last_os_error());
         }
-        let overlapped = Self::zero();
+        let mut overlapped = Self::zero();
         overlapped.set_event(event);
         Ok(overlapped)
     }

@@ -18,6 +18,7 @@ use winapi::um::minwinbase::*;
 use winapi::um::namedpipeapi::*;
 use winapi::um::winbase::*;
 use handle::Handle;
+use overlapped::Overlapped;
 
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]
@@ -319,23 +320,27 @@ impl NamedPipe {
 }
 
 impl Read for NamedPipe {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { 
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         let overlapped = Overlapped::initialize_with_event()?;
-        let res = self.0.read_overlapped_wait(buf, &mut overlapped as *mut overlapped);
-        // We explicilty prefer returning any error from `read_overlapped_wait`
-        unsafe { CloseHandle(overlapped.event()) }
-        res
+        unsafe {
+            let res = self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
+            // We explicilty prefer returning any error from `read_overlapped_wait`
+            CloseHandle(overlapped.event());
+            res
+        }
     }
 }
 impl<'a> Read for &'a NamedPipe {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         let overlapped = Overlapped::initialize_with_event()?;
-        let res = self.0.read_overlapped_wait(buf, &mut overlapped as *mut overlapped);
-        // We explicilty prefer returning any error from `read_overlapped_wait`
-        unsafe { CloseHandle(overlapped.event()) }
-        res
+        unsafe {
+            let res = self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
+            // We explicilty prefer returning any error from `read_overlapped_wait`
+            CloseHandle(overlapped.event());
+            res
+        }
     }
 }
 
@@ -343,10 +348,12 @@ impl Write for NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         let overlapped = Overlapped::initialize_with_event()?;
-        let res = self.0.write_overlapped_wait(buf, &mut overlapped as *mut overlapped);
-        // We explicilty prefer returning any error from `write_overlapped_wait`
-        unsafe { CloseHandle(overlapped.event()) }
-        res
+        unsafe {
+            let res = self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
+            // We explicilty prefer returning any error from `read_overlapped_wait`
+            CloseHandle(overlapped.event());
+            res
+        }
     }
     fn flush(&mut self) -> io::Result<()> {
         <&NamedPipe as Write>::flush(&mut &*self)
@@ -356,10 +363,12 @@ impl<'a> Write for &'a NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         let overlapped = Overlapped::initialize_with_event()?;
-        let res = self.0.write_overlapped_wait(buf, &mut overlapped as *mut overlapped);
-        // We explicilty prefer returning any error from `write_overlapped_wait`
-        unsafe { CloseHandle(overlapped.event()) }
-        res
+        unsafe {
+            let res = self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
+            // We explicilty prefer returning any error from `read_overlapped_wait`
+            CloseHandle(overlapped.event());
+            res
+        }
     }
     fn flush(&mut self) -> io::Result<()> {
         ::cvt(unsafe { FlushFileBuffers(self.0.raw()) }).map(|_| ())
