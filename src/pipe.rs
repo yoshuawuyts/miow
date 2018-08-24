@@ -1,5 +1,6 @@
 //! Named pipes
 
+use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fs::{OpenOptions, File};
 use std::io::prelude::*;
@@ -319,41 +320,46 @@ impl NamedPipe {
     }
 }
 
+thread_local! {
+    static NAMED_PIPE_OVERLAPPED: RefCell<Option<Overlapped>> = RefCell::new(None);
+}
+
+fn with_threadlocal_overlapped<F>(f: F) -> io::Result<usize>
+    where F: FnOnce(&Overlapped) -> io::Result<usize>
+{
+    NAMED_PIPE_OVERLAPPED.with(|overlapped| {
+        let mut mborrow = overlapped.borrow_mut();
+        if let None = *mborrow {
+            let op = Overlapped::initialize_with_autoreset_event()?;
+            *mborrow = Some(op);
+        }
+        f(mborrow.as_ref().unwrap())
+    })
+}
+
 impl Read for NamedPipe {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
-        let overlapped = Overlapped::initialize_with_event()?;
-        unsafe {
-            let res = self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
-            // We explicilty prefer returning any error from `read_overlapped_wait`
-            CloseHandle(overlapped.event());
-            res
-        }
+        with_threadlocal_overlapped(|overlapped| unsafe {
+            self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+        })
     }
 }
 impl<'a> Read for &'a NamedPipe {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
-        let overlapped = Overlapped::initialize_with_event()?;
-        unsafe {
-            let res = self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
-            // We explicilty prefer returning any error from `read_overlapped_wait`
-            CloseHandle(overlapped.event());
-            res
-        }
+        with_threadlocal_overlapped(|overlapped| unsafe {
+            self.0.read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+        })
     }
 }
 
 impl Write for NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
-        let overlapped = Overlapped::initialize_with_event()?;
-        unsafe {
-            let res = self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
-            // We explicilty prefer returning any error from `read_overlapped_wait`
-            CloseHandle(overlapped.event());
-            res
-        }
+        with_threadlocal_overlapped(|overlapped| unsafe {
+            self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+        })
     }
     fn flush(&mut self) -> io::Result<()> {
         <&NamedPipe as Write>::flush(&mut &*self)
@@ -362,13 +368,9 @@ impl Write for NamedPipe {
 impl<'a> Write for &'a NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
-        let overlapped = Overlapped::initialize_with_event()?;
-        unsafe {
-            let res = self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED);
-            // We explicilty prefer returning any error from `read_overlapped_wait`
-            CloseHandle(overlapped.event());
-            res
-        }
+        with_threadlocal_overlapped(|overlapped| unsafe {
+            self.0.write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+        })
     }
     fn flush(&mut self) -> io::Result<()> {
         ::cvt(unsafe { FlushFileBuffers(self.0.raw()) }).map(|_| ())
