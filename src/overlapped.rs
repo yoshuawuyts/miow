@@ -3,7 +3,10 @@ use std::io;
 use std::mem;
 use std::ptr;
 
-use winapi::shared::ntdef::HANDLE;
+use winapi::shared::ntdef::{
+    HANDLE,
+    NULL,
+};
 use winapi::um::handleapi::*;
 use winapi::um::minwinbase::*;
 use winapi::um::synchapi::*;
@@ -35,7 +38,7 @@ impl Overlapped {
     /// `Overlapped`.
     pub fn initialize_with_event() -> io::Result<Overlapped> {
         let event = unsafe {CreateEventW(ptr::null_mut(), 1i32, 0i32, ptr::null())};
-        if event == INVALID_HANDLE_VALUE {
+        if event == NULL {
             return Err(io::Error::last_os_error());
         }
         let mut overlapped = Self::zero();
