@@ -6,7 +6,7 @@
 use std::cmp;
 use std::io;
 use std::mem;
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::net::{TcpStream, UdpSocket, SocketAddr, TcpListener};
 use std::net::{SocketAddrV4, Ipv4Addr, SocketAddrV6, Ipv6Addr};
 use std::os::windows::prelude::*;
@@ -602,7 +602,7 @@ unsafe fn connect_overlapped(socket: SOCKET,
             Data3: 0x4660,
             Data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
         },
-        val: ATOMIC_USIZE_INIT,
+        val: AtomicUsize::new(0),
     };
     type ConnectEx = unsafe extern "system" fn(SOCKET, *const SOCKADDR,
                                                c_int, PVOID, DWORD, LPDWORD,
@@ -701,7 +701,7 @@ impl TcpListenerExt for TcpListener {
                 Data3: 0x11cf,
                 Data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
             },
-            val: ATOMIC_USIZE_INIT,
+            val: AtomicUsize::new(0),
         };
         type AcceptEx = unsafe extern "system" fn(SOCKET, SOCKET, PVOID,
                                                   DWORD, DWORD, DWORD, LPDWORD,
@@ -780,7 +780,7 @@ static GETACCEPTEXSOCKADDRS: WsaExtension = WsaExtension {
         Data3: 0x11cf,
         Data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
     },
-    val: ATOMIC_USIZE_INIT,
+    val: AtomicUsize::new(0),
 };
 type GetAcceptExSockaddrs = unsafe extern "system" fn(PVOID, DWORD, DWORD, DWORD,
                                                       *mut LPSOCKADDR, LPINT,
