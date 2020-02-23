@@ -8,7 +8,8 @@
 extern crate socket2;
 extern crate winapi;
 
-#[cfg(test)] extern crate rand;
+#[cfg(test)]
+extern crate rand;
 
 use std::cmp;
 use std::io;
@@ -19,10 +20,12 @@ use winapi::um::winbase::*;
 
 #[cfg(test)]
 macro_rules! t {
-    ($e:expr) => (match $e {
-        Ok(e) => e,
-        Err(e) => panic!("{} failed with {:?}", stringify!($e), e),
-    })
+    ($e:expr) => {
+        match $e {
+            Ok(e) => e,
+            Err(e) => panic!("{} failed with {:?}", stringify!($e), e),
+        }
+    };
 }
 
 mod handle;
@@ -49,9 +52,7 @@ fn dur2ms(dur: Option<Duration>) -> u32 {
     };
     let ms = dur.as_secs().checked_mul(1_000);
     let ms_extra = dur.subsec_nanos() / 1_000_000;
-    ms.and_then(|ms| {
-        ms.checked_add(ms_extra as u64)
-    }).map(|ms| {
-        cmp::min(u32::max_value() as u64, ms) as u32
-    }).unwrap_or(INFINITE - 1)
+    ms.and_then(|ms| ms.checked_add(ms_extra as u64))
+        .map(|ms| cmp::min(u32::max_value() as u64, ms) as u32)
+        .unwrap_or(INFINITE - 1)
 }
