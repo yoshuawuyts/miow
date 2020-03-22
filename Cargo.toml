@@ -5,8 +5,8 @@ authors = ["Alex Crichton <alex@alexcrichton.com>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
 keywords = ["iocp", "windows", "io", "overlapped"]
-repository = "https://github.com/alexcrichton/miow"
-homepage = "https://github.com/alexcrichton/miow"
+repository = "https://github.com/yoshuawuyts/miow"
+homepage = "https://github.com/yoshuawuyts/miow"
 documentation = "https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/miow/"
 description = """
 A zero overhead I/O library for Windows, focusing on IOCP and Async I/O
