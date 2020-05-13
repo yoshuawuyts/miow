@@ -35,7 +35,7 @@ pub mod iocp;
 pub mod net;
 pub mod pipe;
 
-pub use overlapped::Overlapped;
+pub use crate::overlapped::Overlapped;
 
 fn cvt(i: BOOL) -> io::Result<BOOL> {
     if i == 0 {

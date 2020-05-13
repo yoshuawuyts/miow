@@ -9,8 +9,8 @@ use std::os::windows::ffi::*;
 use std::os::windows::io::*;
 use std::time::Duration;
 
-use handle::Handle;
-use overlapped::Overlapped;
+use crate::handle::Handle;
+use crate::overlapped::Overlapped;
 use winapi::shared::minwindef::*;
 use winapi::shared::ntdef::HANDLE;
 use winapi::shared::winerror::*;
@@ -54,9 +54,7 @@ pub struct NamedPipeBuilder {
 pub fn anonymous(buffer_size: u32) -> io::Result<(AnonRead, AnonWrite)> {
     let mut read = 0 as HANDLE;
     let mut write = 0 as HANDLE;
-    try!(::cvt(unsafe {
-        CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size)
-    }));
+    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size) })?;
     Ok((AnonRead(Handle::new(read)), AnonWrite(Handle::new(write))))
 }
 
@@ -147,7 +145,7 @@ fn _connect(addr: &OsStr) -> io::Result<File> {
             Err(e) => return Err(e),
         }
 
-        try!(NamedPipe::wait(addr, Some(Duration::new(20, 0))));
+        NamedPipe::wait(addr, Some(Duration::new(20, 0)))?;
     }
 }
 
@@ -183,8 +181,8 @@ impl NamedPipe {
 
     fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
-        let timeout = ::dur2ms(timeout);
-        ::cvt(unsafe { WaitNamedPipeW(addr.as_ptr(), timeout) }).map(|_| ())
+        let timeout = crate::dur2ms(timeout);
+        crate::cvt(unsafe { WaitNamedPipeW(addr.as_ptr(), timeout) }).map(|_| ())
     }
 
     /// Connects this named pipe to a client, blocking until one becomes
@@ -194,7 +192,7 @@ impl NamedPipe {
     /// client to connect. This can be called immediately after the pipe is
     /// created, or after it has been disconnected from a previous client.
     pub fn connect(&self) -> io::Result<()> {
-        match ::cvt(unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _) }) {
+        match crate::cvt(unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _) }) {
             Ok(_) => Ok(()),
             Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(()),
             Err(e) => Err(e),
@@ -221,7 +219,7 @@ impl NamedPipe {
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
     pub unsafe fn connect_overlapped(&self, overlapped: *mut OVERLAPPED) -> io::Result<bool> {
-        match ::cvt(ConnectNamedPipe(self.0.raw(), overlapped)) {
+        match crate::cvt(ConnectNamedPipe(self.0.raw(), overlapped)) {
             Ok(_) => Ok(true),
             Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(true),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32) => Ok(false),
@@ -231,7 +229,7 @@ impl NamedPipe {
 
     /// Disconnects this named pipe from any connected client.
     pub fn disconnect(&self) -> io::Result<()> {
-        ::cvt(unsafe { DisconnectNamedPipe(self.0.raw()) }).map(|_| ())
+        crate::cvt(unsafe { DisconnectNamedPipe(self.0.raw()) }).map(|_| ())
     }
 
     /// Issues an overlapped read operation to occur on this pipe.
@@ -390,7 +388,7 @@ impl<'a> Write for &'a NamedPipe {
         })
     }
     fn flush(&mut self) -> io::Result<()> {
-        ::cvt(unsafe { FlushFileBuffers(self.0.raw()) }).map(|_| ())
+        crate::cvt(unsafe { FlushFileBuffers(self.0.raw()) }).map(|_| ())
     }
 }
 
@@ -530,8 +528,8 @@ mod tests {
     use rand::{thread_rng, Rng};
 
     use super::{anonymous, NamedPipe, NamedPipeBuilder};
-    use iocp::CompletionPort;
-    use Overlapped;
+    use crate::iocp::CompletionPort;
+    use crate::Overlapped;
 
     fn name() -> String {
         let name = thread_rng().gen_ascii_chars().take(30).collect::<String>();

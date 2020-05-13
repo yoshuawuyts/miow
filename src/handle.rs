@@ -36,7 +36,7 @@ impl Handle {
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        try!(::cvt(unsafe {
+        crate::cvt(unsafe {
             WriteFile(
                 self.0,
                 buf.as_ptr() as *const _,
@@ -44,14 +44,14 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        }));
+        })?;
         Ok(bytes as usize)
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        try!(::cvt(unsafe {
+        crate::cvt(unsafe {
             ReadFile(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
@@ -59,7 +59,7 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        }));
+        })?;
         Ok(bytes as usize)
     }
 
@@ -90,7 +90,7 @@ impl Handle {
         wait: BOOLEAN,
     ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        let res = ::cvt({
+        let res = crate::cvt({
             ReadFile(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
@@ -106,7 +106,7 @@ impl Handle {
         }
 
         let mut bytes = 0;
-        let res = ::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
+        let res = crate::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && wait == FALSE => {
@@ -143,7 +143,7 @@ impl Handle {
         wait: BOOLEAN,
     ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        let res = ::cvt({
+        let res = crate::cvt({
             WriteFile(
                 self.0,
                 buf.as_ptr() as *const _,
@@ -159,7 +159,7 @@ impl Handle {
         }
 
         let mut bytes = 0;
-        let res = ::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
+        let res = crate::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && wait == FALSE => {
