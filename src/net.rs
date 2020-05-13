@@ -975,10 +975,10 @@ mod tests {
 
     use socket2::{Domain, Socket, Type};
 
-    use iocp::CompletionPort;
-    use net::{AcceptAddrsBuf, TcpListenerExt};
-    use net::{SocketAddrBuf, TcpStreamExt, UdpSocketExt};
-    use Overlapped;
+    use crate::iocp::CompletionPort;
+    use crate::net::{AcceptAddrsBuf, TcpListenerExt};
+    use crate::net::{SocketAddrBuf, TcpStreamExt, UdpSocketExt};
+    use crate::Overlapped;
 
     fn each_ip(f: &mut dyn FnMut(SocketAddr)) {
         f(t!("127.0.0.1:0".parse()));

@@ -7,13 +7,13 @@ use std::mem;
 use std::os::windows::io::*;
 use std::time::Duration;
 
-use handle::Handle;
+use crate::handle::Handle;
 use winapi::shared::basetsd::*;
 use winapi::shared::ntdef::*;
 use winapi::um::handleapi::*;
 use winapi::um::ioapiset::*;
 use winapi::um::minwinbase::*;
-use Overlapped;
+use crate::Overlapped;
 
 /// A handle to an Windows I/O Completion Port.
 #[derive(Debug)]
@@ -110,7 +110,7 @@ impl CompletionPort {
         let mut bytes = 0;
         let mut token = 0;
         let mut overlapped = 0 as *mut _;
-        let timeout = ::dur2ms(timeout);
+        let timeout = crate::dur2ms(timeout);
         let ret = unsafe {
             GetQueuedCompletionStatus(
                 self.handle.raw(),
@@ -120,7 +120,7 @@ impl CompletionPort {
                 timeout,
             )
         };
-        ::cvt(ret).map(|_| {
+        crate::cvt(ret).map(|_| {
             CompletionStatus(OVERLAPPED_ENTRY {
                 dwNumberOfBytesTransferred: bytes,
                 lpCompletionKey: token,
@@ -149,7 +149,7 @@ impl CompletionPort {
             mem::size_of::<OVERLAPPED_ENTRY>()
         );
         let mut removed = 0;
-        let timeout = ::dur2ms(timeout);
+        let timeout = crate::dur2ms(timeout);
         let len = cmp::min(list.len(), <ULONG>::max_value() as usize) as ULONG;
         let ret = unsafe {
             GetQueuedCompletionStatusEx(
@@ -161,7 +161,7 @@ impl CompletionPort {
                 FALSE as i32,
             )
         };
-        match ::cvt(ret) {
+        match crate::cvt(ret) {
             Ok(_) => Ok(&mut list[..removed as usize]),
             Err(e) => Err(e),
         }
@@ -181,7 +181,7 @@ impl CompletionPort {
                 status.0.lpOverlapped,
             )
         };
-        ::cvt(ret).map(|_| ())
+        crate::cvt(ret).map(|_| ())
     }
 }
 
@@ -273,7 +273,7 @@ mod tests {
     use winapi::shared::basetsd::*;
     use winapi::shared::winerror::*;
 
-    use iocp::{CompletionPort, CompletionStatus};
+    use crate::iocp::{CompletionPort, CompletionStatus};
 
     #[test]
     fn is_send_sync() {
