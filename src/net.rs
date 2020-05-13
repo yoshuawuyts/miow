@@ -642,7 +642,7 @@ unsafe fn connect_overlapped(
         LPOVERLAPPED,
     ) -> BOOL;
 
-    let ptr = try!(CONNECTEX.get(socket));
+    let ptr = CONNECTEX.get(socket)?;
     assert!(ptr != 0);
     let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
 
@@ -782,7 +782,7 @@ impl TcpListenerExt for TcpListener {
             LPOVERLAPPED,
         ) -> BOOL;
 
-        let ptr = try!(ACCEPTEX.get(self.as_raw_socket() as SOCKET));
+        let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
         let accept_ex = mem::transmute::<_, AcceptEx>(ptr);
 
@@ -801,7 +801,7 @@ impl TcpListenerExt for TcpListener {
         let succeeded = if r == TRUE {
             true
         } else {
-            try!(last_err());
+            last_err()?;
             false
         };
         Ok(succeeded)
@@ -895,7 +895,7 @@ impl AcceptAddrsBuf {
             remote_len: 0,
             _data: self,
         };
-        let ptr = try!(GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET));
+        let ptr = GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
         unsafe {
             let get_sockaddrs = mem::transmute::<_, GetAcceptExSockaddrs>(ptr);
@@ -980,7 +980,7 @@ mod tests {
     use net::{SocketAddrBuf, TcpStreamExt, UdpSocketExt};
     use Overlapped;
 
-    fn each_ip(f: &mut FnMut(SocketAddr)) {
+    fn each_ip(f: &mut dyn FnMut(SocketAddr)) {
         f(t!("127.0.0.1:0".parse()));
         f(t!("[::1]:0".parse()));
     }

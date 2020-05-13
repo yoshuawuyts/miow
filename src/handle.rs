@@ -36,7 +36,7 @@ impl Handle {
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        try!(::cvt(unsafe {
+        ::cvt(unsafe {
             WriteFile(
                 self.0,
                 buf.as_ptr() as *const _,
@@ -44,14 +44,14 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        }));
+        })?;
         Ok(bytes as usize)
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
-        try!(::cvt(unsafe {
+        ::cvt(unsafe {
             ReadFile(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
@@ -59,7 +59,7 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        }));
+        })?;
         Ok(bytes as usize)
     }
 

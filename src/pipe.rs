@@ -54,9 +54,7 @@ pub struct NamedPipeBuilder {
 pub fn anonymous(buffer_size: u32) -> io::Result<(AnonRead, AnonWrite)> {
     let mut read = 0 as HANDLE;
     let mut write = 0 as HANDLE;
-    try!(::cvt(unsafe {
-        CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size)
-    }));
+    ::cvt(unsafe { CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size) })?;
     Ok((AnonRead(Handle::new(read)), AnonWrite(Handle::new(write))))
 }
 
@@ -147,7 +145,7 @@ fn _connect(addr: &OsStr) -> io::Result<File> {
             Err(e) => return Err(e),
         }
 
-        try!(NamedPipe::wait(addr, Some(Duration::new(20, 0))));
+        NamedPipe::wait(addr, Some(Duration::new(20, 0)))?;
     }
 }
 
