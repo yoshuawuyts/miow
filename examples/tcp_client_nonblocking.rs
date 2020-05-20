@@ -1,7 +1,5 @@
 use std::io;
-use std::io::prelude::*;
-use std::net::{TcpListener, TcpStream};
-use std::thread::{self, JoinHandle};
+use std::net::TcpStream;
 
 use miow::iocp::CompletionPort;
 use miow::net::TcpStreamExt;
@@ -12,6 +10,7 @@ use miow::Overlapped;
 fn main() -> io::Result<()> {
     let cp = CompletionPort::new(1)?;
     let stream = TcpStream::connect("localhost:8080")?;
+    stream.set_nonblocking(true)?;
     cp.add_socket(1, &stream)?;
 
     let mut buf = vec![0; 4028];
