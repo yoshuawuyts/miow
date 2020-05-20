@@ -266,6 +266,7 @@ impl NamedPipe {
             Ok(_) => Ok(true),
             Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(true),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32) => Ok(false),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_NO_DATA as i32) => Ok(true),
             Err(e) => Err(e),
         }
     }
