@@ -1,4 +1,47 @@
-//! Named pipes
+//! Interprocess Communication pipes
+//!          
+//! A pipe is a section of shared memory that processes use for communication.
+//! The process that creates a pipe is the _pipe server_. A process that connects
+//! to a pipe is a _pipe client_. One process writes information to the pipe, then
+//! the other process reads the information from the pipe. This overview
+//! describes how to create, manage, and use pipes.
+//!
+//! There are two types of pipes: [anonymous pipes](#fn.anonymous.html) and
+//! [named pipes](#fn.named.html). Anonymous pipes require less overhead than
+//! named pipes, but offer limited services.
+//!
+//! # Anonymous pipes
+//!
+//! An anonymous pipe is an unnamed, one-way pipe that typically transfers data
+//! between a parent process and a child process. Anonymous pipes are always
+//! local; they cannot be used for communication over a network.
+//!
+//! # Named pipes
+//!
+//! A *named pipe* is a named, one-way or duplex pipe for communication between
+//! the pipe server and one or more pipe clients. All instances of a named pipe
+//! share the same pipe name, but each instance has its own buffers and handles,
+//! and provides a separate conduit for client/server communication. The use of
+//! instances enables multiple pipe clients to use the same named pipe
+//! simultaneously.
+//!
+//! Any process can access named pipes, subject to security checks, making named
+//! pipes an easy form of communication between related or unrelated processes.
+//!
+//! Any process can act as both a server and a client, making peer-to-peer
+//! communication possible. As used here, the term pipe server refers to a
+//! process that creates a named pipe, and the term pipe client refers to a
+//! process that connects to an instance of a named pipe.
+//!
+//! Named pipes can be used to provide communication between processes on the
+//! same computer or between processes on different computers across a network.
+//! If the server service is running, all named pipes are accessible remotely. If
+//! you intend to use a named pipe locally only, deny access to NT
+//! AUTHORITY\\NETWORK or switch to local RPC.
+//!
+//! # References
+//!
+//! - [win32 pipe docs](https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/ipc/pipes.md)
 
 use std::cell::RefCell;
 use std::ffi::OsStr;
