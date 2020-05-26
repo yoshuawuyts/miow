@@ -8,12 +8,13 @@ use std::os::windows::io::*;
 use std::time::Duration;
 
 use crate::handle::Handle;
+use crate::Overlapped;
 use winapi::shared::basetsd::*;
 use winapi::shared::ntdef::*;
+use winapi::shared::winerror::WAIT_TIMEOUT;
 use winapi::um::handleapi::*;
 use winapi::um::ioapiset::*;
 use winapi::um::minwinbase::*;
-use crate::Overlapped;
 
 /// A handle to an Windows I/O Completion Port.
 #[derive(Debug)]
@@ -102,7 +103,8 @@ impl CompletionPort {
     ///
     /// A timeout can optionally be specified to this function. If `None` is
     /// provided this function will not time out, and otherwise it will time out
-    /// after the specified duration has passed.
+    /// after the specified duration has passed. In the event of a timeout an
+    /// error with `ErrorKind::TimedOut` will be returned.
     ///
     /// On success this will return the status message which was dequeued from
     /// this completion port.
@@ -120,14 +122,18 @@ impl CompletionPort {
                 timeout,
             )
         };
-        crate::cvt(ret).map(|_| {
-            CompletionStatus(OVERLAPPED_ENTRY {
+        match crate::cvt(ret) {
+            Ok(_) => Ok(CompletionStatus(OVERLAPPED_ENTRY {
                 dwNumberOfBytesTransferred: bytes,
                 lpCompletionKey: token,
                 lpOverlapped: overlapped,
                 Internal: 0,
-            })
-        })
+            })),
+            Err(e) if e.raw_os_error() == Some(WAIT_TIMEOUT as i32) => {
+                Err(io::Error::new(io::ErrorKind::TimedOut, e))
+            }
+            Err(e) => Err(e),
+        }
     }
 
     /// Dequeues a number of completion statuses from this I/O completion port.
@@ -137,6 +143,11 @@ impl CompletionPort {
     /// not read) and then on success this function will return a sub-slice of
     /// statuses which represent those which were dequeued from this port. This
     /// function does not wait to fill up the entire list of statuses provided.
+    ///
+    /// A timeout can optionally be specified to this function. If `None` is
+    /// provided this function will not time out, and otherwise it will time out
+    /// after the specified duration has passed. In the event of a timeout an
+    /// empty list is returned.
     ///
     /// Like with `get`, a timeout may be specified for this operation.
     pub fn get_many<'a>(
@@ -163,6 +174,7 @@ impl CompletionPort {
         };
         match crate::cvt(ret) {
             Ok(_) => Ok(&mut list[..removed as usize]),
+            Err(e) if e.raw_os_error() == Some(WAIT_TIMEOUT as i32) => Ok(&mut list[..0]),
             Err(e) => Err(e),
         }
     }
@@ -267,11 +279,11 @@ impl CompletionStatus {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
     use std::mem;
     use std::time::Duration;
 
     use winapi::shared::basetsd::*;
-    use winapi::shared::winerror::*;
 
     use crate::iocp::{CompletionPort, CompletionStatus};
 
@@ -290,7 +302,7 @@ mod tests {
     fn timeout() {
         let c = CompletionPort::new(1).unwrap();
         let err = c.get(Some(Duration::from_millis(1))).unwrap_err();
-        assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as i32));
+        assert_eq!(err.kind(), io::ErrorKind::TimedOut);
     }
 
     #[test]

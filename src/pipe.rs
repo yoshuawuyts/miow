@@ -218,6 +218,11 @@ impl NamedPipe {
     ///
     /// If this function succeeds the process can create a `File` to connect to
     /// the named pipe.
+    ///
+    /// A timeout can optionally be specified to this function. If `None` is
+    /// provided this function will not time out, and otherwise it will time out
+    /// after the specified duration has passed. In the event of a timeout an
+    /// error with `ErrorKind::TimedOut` will be returned.
     pub fn wait<A: AsRef<OsStr>>(addr: A, timeout: Option<Duration>) -> io::Result<()> {
         NamedPipe::_wait(addr.as_ref(), timeout)
     }
@@ -225,7 +230,14 @@ impl NamedPipe {
     fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
         let timeout = crate::dur2ms(timeout);
-        crate::cvt(unsafe { WaitNamedPipeW(addr.as_ptr(), timeout) }).map(|_| ())
+
+        match crate::cvt(unsafe { WaitNamedPipeW(addr.as_ptr(), timeout) }) {
+            Ok(_) => Ok(()),
+            Err(e) if e.raw_os_error() == Some(WAIT_TIMEOUT as i32) => {
+                Err(io::Error::new(io::ErrorKind::TimedOut, e))
+            }
+            Err(e) => return Err(e),
+        }
     }
 
     /// Connects this named pipe to a client, blocking until one becomes
