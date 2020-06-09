@@ -14,6 +14,10 @@ A zero overhead I/O library for Windows, focusing on IOCP and Async I/O
 abstractions.
 """
 
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
+targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
+
 [dependencies]
 socket2 = "0.3"
 
