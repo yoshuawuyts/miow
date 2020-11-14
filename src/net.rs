@@ -970,7 +970,8 @@ impl WsaExtension {
 #[cfg(test)]
 mod tests {
     use std::io::prelude::*;
-    use std::net::{SocketAddr, TcpListener, TcpStream, UdpSocket};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6, TcpListener, TcpStream, UdpSocket};
+    use std::slice;
     use std::thread;
 
     use socket2::{Domain, Socket, Type};
@@ -1238,5 +1239,36 @@ mod tests {
             assert_eq!(addrs.local(), Some(local));
             assert_eq!(addrs.remote(), Some(remote));
         })
+    }
+
+    #[test]
+    fn sockaddr_convert_4() {
+        let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(3, 4, 5, 6)), 0xabcd);
+        let (raw_addr, addr_len) = super::socket_addr_to_ptrs(&addr);
+        assert_eq!(addr_len, 16);
+        let addr_bytes = unsafe { slice::from_raw_parts(raw_addr as *const u8, addr_len as usize) };
+        assert_eq!(addr_bytes, &[2, 0, 0xab, 0xcd, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0]);
+    }
+
+    #[test]
+    fn sockaddr_convert_v6() {
+        let port = 0xabcd;
+        let flowinfo = 0x12345678;
+        let scope_id = 0x87654321;
+        let addr = SocketAddr::V6(SocketAddrV6::new(
+            Ipv6Addr::new(0x0102, 0x0304, 0x0506, 0x0708, 0x090a, 0x0b0c, 0x0d0e, 0x0f10),
+            port,
+            flowinfo,
+            scope_id
+        ));
+        let (raw_addr, addr_len) = super::socket_addr_to_ptrs(&addr);
+        assert_eq!(addr_len, 28);
+        let addr_bytes = unsafe { slice::from_raw_parts(raw_addr as *const u8, addr_len as usize) };
+        assert_eq!(addr_bytes, &[
+            23, 0, // AF_INET6
+            0xab, 0xcd, // Port
+            0x78, 0x56, 0x34, 0x12, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, // IP
+            0x21, 0x43, 0x65, 0x87, // scope_id
+        ]);
     }
 }
