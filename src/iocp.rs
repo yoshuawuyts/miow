@@ -8,12 +8,12 @@ use std::os::windows::io::*;
 use std::time::Duration;
 
 use crate::handle::Handle;
+use crate::Overlapped;
 use winapi::shared::basetsd::*;
 use winapi::shared::ntdef::*;
 use winapi::um::handleapi::*;
 use winapi::um::ioapiset::*;
 use winapi::um::minwinbase::*;
-use crate::Overlapped;
 
 /// A handle to an Windows I/O Completion Port.
 #[derive(Debug)]
