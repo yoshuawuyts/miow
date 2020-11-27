@@ -17,7 +17,7 @@ abstractions.
 winapi = "0.2"
 kernel32-sys = "0.2"
 ws2_32-sys = "0.2"
-net2 = { version = "0.2.5", default-features = false }
+net2 = { version = "0.2.36", default-features = false }
 
 [dev-dependencies]
 rand = "0.3"
