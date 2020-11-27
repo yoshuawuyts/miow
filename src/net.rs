@@ -503,7 +503,7 @@ fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, c_int) {
             let sockaddr_in = SOCKADDR_IN {
                 sin_family: AF_INET as ADDRESS_FAMILY,
                 sin_port: a.port().to_be(),
-                sin_addr: IN_ADDR { S_un: u32::from_ne_bytes(a.ip().octets()) },
+                sin_addr: IN_ADDR { S_un: u32::from(*a.ip()).to_be() },
                 sin_zero: [0; 8],
             };
 
