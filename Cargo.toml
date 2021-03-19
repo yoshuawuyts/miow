@@ -39,4 +39,4 @@ features = [
 
 [dev-dependencies]
 rand = "0.8.0"
-socket2 = "0.3.18"
+socket2 = "0.4.0"
