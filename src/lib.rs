@@ -5,7 +5,6 @@
 #![allow(bad_style)]
 #![doc(html_root_url = "https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/")]
 
-extern crate socket2;
 extern crate winapi;
 
 #[cfg(test)]
