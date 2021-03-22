@@ -5,11 +5,6 @@
 #![allow(bad_style)]
 #![doc(html_root_url = "https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/")]
 
-extern crate winapi;
-
-#[cfg(test)]
-extern crate rand;
-
 use std::cmp;
 use std::io;
 use std::time::Duration;
