@@ -18,7 +18,6 @@ abstractions.
 default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
-[dependencies]
 
 [dependencies.winapi]
 version = "0.3.3"
