@@ -54,15 +54,16 @@ use std::time::Duration;
 
 use crate::handle::Handle;
 use crate::overlapped::Overlapped;
-use winapi::shared::minwindef::*;
-use winapi::shared::ntdef::HANDLE;
-use winapi::shared::winerror::*;
-use winapi::um::fileapi::*;
-use winapi::um::handleapi::*;
-use winapi::um::ioapiset::*;
-use winapi::um::minwinbase::*;
-use winapi::um::namedpipeapi::*;
-use winapi::um::winbase::*;
+
+use crate::bindings::{
+    Windows::Win32::Foundation::*,
+    Windows::Win32::System::Pipes::*,
+    Windows::Win32::System::Diagnostics::Debug::*,
+    Windows::Win32::System::SystemServices::*,
+    Windows::Win32::System::WindowsProgramming::*,
+    Windows::Win32::Storage::FileSystem::*,
+    Windows::Win32::Security::*,
+};
 
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]
@@ -80,12 +81,12 @@ pub struct NamedPipe(Handle);
 #[derive(Debug)]
 pub struct NamedPipeBuilder {
     name: Vec<u16>,
-    dwOpenMode: DWORD,
-    dwPipeMode: DWORD,
-    nMaxInstances: DWORD,
-    nOutBufferSize: DWORD,
-    nInBufferSize: DWORD,
-    nDefaultTimeOut: DWORD,
+    dwOpenMode: u32,
+    dwPipeMode: u32,
+    nMaxInstances: u32,
+    nOutBufferSize: u32,
+    nInBufferSize: u32,
+    nDefaultTimeOut: u32,
 }
 
 /// Creates a new anonymous in-memory pipe, returning the read/write ends of the
@@ -363,7 +364,7 @@ impl NamedPipe {
     /// This function will panic
     pub unsafe fn result(&self, overlapped: *mut OVERLAPPED) -> io::Result<usize> {
         let mut transferred = 0;
-        let r = GetOverlappedResult(self.0.raw(), overlapped, &mut transferred, FALSE);
+        let r = GetOverlappedResult(self.0.raw(), overlapped, &mut transferred, false);
         if r == 0 {
             Err(io::Error::last_os_error())
         } else {
@@ -452,7 +453,7 @@ impl IntoRawHandle for NamedPipe {
     }
 }
 
-fn flag(slot: &mut DWORD, on: bool, val: DWORD) {
+fn flag(slot: &mut u32, on: bool, val: u32) {
     if on {
         *slot |= val;
     } else {
@@ -507,19 +508,19 @@ impl NamedPipeBuilder {
     /// The first instance of a pipe can specify this value. A value of 255
     /// indicates that there is no limit to the number of instances.
     pub fn max_instances(&mut self, instances: u8) -> &mut Self {
-        self.nMaxInstances = instances as DWORD;
+        self.nMaxInstances = instances as u32;
         self
     }
 
     /// Specifies the number of bytes to reserver for the output buffer
     pub fn out_buffer_size(&mut self, buffer: u32) -> &mut Self {
-        self.nOutBufferSize = buffer as DWORD;
+        self.nOutBufferSize = buffer as u32;
         self
     }
 
     /// Specifies the number of bytes to reserver for the input buffer
     pub fn in_buffer_size(&mut self, buffer: u32) -> &mut Self {
-        self.nInBufferSize = buffer as DWORD;
+        self.nInBufferSize = buffer as u32;
         self
     }
 

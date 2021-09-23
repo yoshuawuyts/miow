@@ -9,11 +9,12 @@ use std::time::Duration;
 
 use crate::handle::Handle;
 use crate::Overlapped;
-use winapi::shared::basetsd::*;
-use winapi::shared::ntdef::*;
-use winapi::um::handleapi::*;
-use winapi::um::ioapiset::*;
-use winapi::um::minwinbase::*;
+
+use crate::bindings::{
+    Windows::Win32::Foundation::*,
+    Windows::Win32::Storage::FileSystem::*,
+    Windows::Win32::System::SystemServices::*,
+};
 
 /// A handle to an Windows I/O Completion Port.
 #[derive(Debug)]
@@ -82,9 +83,9 @@ impl CompletionPort {
     }
 
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
-        assert_eq!(mem::size_of_val(&token), mem::size_of::<ULONG_PTR>());
+        assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
         let ret =
-            unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as ULONG_PTR, 0) };
+            unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as usize, 0) };
         if ret.is_null() {
             Err(io::Error::last_os_error())
         } else {
@@ -150,7 +151,7 @@ impl CompletionPort {
         );
         let mut removed = 0;
         let timeout = crate::dur2ms(timeout);
-        let len = cmp::min(list.len(), <ULONG>::max_value() as usize) as ULONG;
+        let len = cmp::min(list.len(), <u32>::max_value() as usize) as u32;
         let ret = unsafe {
             GetQueuedCompletionStatusEx(
                 self.handle.raw(),
@@ -158,7 +159,7 @@ impl CompletionPort {
                 len,
                 &mut removed,
                 timeout,
-                FALSE as i32,
+                false,
             )
         };
         match crate::cvt(ret) {
@@ -212,10 +213,10 @@ impl CompletionStatus {
     /// the `post` method. The parameters are opaquely passed through and not
     /// interpreted by the system at all.
     pub fn new(bytes: u32, token: usize, overlapped: *mut Overlapped) -> CompletionStatus {
-        assert_eq!(mem::size_of_val(&token), mem::size_of::<ULONG_PTR>());
+        assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
         CompletionStatus(OVERLAPPED_ENTRY {
             dwNumberOfBytesTransferred: bytes,
-            lpCompletionKey: token as ULONG_PTR,
+            lpCompletionKey: token as usize,
             lpOverlapped: overlapped as *mut _,
             Internal: 0,
         })
@@ -270,9 +271,6 @@ mod tests {
     use std::mem;
     use std::time::Duration;
 
-    use winapi::shared::basetsd::*;
-    use winapi::shared::winerror::*;
-
     use crate::iocp::{CompletionPort, CompletionStatus};
 
     #[test]
@@ -283,7 +281,7 @@ mod tests {
 
     #[test]
     fn token_right_size() {
-        assert_eq!(mem::size_of::<usize>(), mem::size_of::<ULONG_PTR>());
+        assert_eq!(mem::size_of::<usize>(), mem::size_of::<usize>());
     }
 
     #[test]

@@ -10,19 +10,17 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 use std::net::{SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::os::windows::prelude::*;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use windows::Guid;
 
-use winapi::ctypes::*;
-use winapi::shared::guiddef::*;
-use winapi::shared::in6addr::{in6_addr_u, IN6_ADDR};
-use winapi::shared::inaddr::{in_addr_S_un, IN_ADDR};
-use winapi::shared::minwindef::*;
-use winapi::shared::minwindef::{FALSE, TRUE};
-use winapi::shared::ntdef::*;
-use winapi::shared::ws2def::SOL_SOCKET;
-use winapi::shared::ws2def::*;
-use winapi::shared::ws2ipdef::*;
-use winapi::um::minwinbase::*;
-use winapi::um::winsock2::*;
+use crate::bindings::{
+    Windows::Win32::Foundation::*,
+    Windows::Win32::Networking::WinSock::*,
+    Windows::Win32::System::SystemServices::*,
+    Windows::Win32::NetworkManagement::IpHelper::*,
+};
+
+// https://github.com/microsoft/win32metadata/issues/671
+pub const SIO_GET_EXTENSION_FUNCTION_POINTER: u32 = 33_5544_3206u32;
 
 /// A type to represent a buffer in which a socket address will be stored.
 ///
@@ -32,7 +30,7 @@ use winapi::um::winsock2::*;
 #[derive(Clone, Copy)]
 pub struct SocketAddrBuf {
     buf: SOCKADDR_STORAGE,
-    len: c_int,
+    len: i32,
 }
 
 /// A type to represent a buffer in which an accepted socket's address will be
@@ -54,15 +52,15 @@ pub struct AcceptAddrsBuf {
 
 /// The parsed return value of `AcceptAddrsBuf`.
 pub struct AcceptAddrs<'a> {
-    local: LPSOCKADDR,
-    local_len: c_int,
-    remote: LPSOCKADDR,
-    remote_len: c_int,
+    local: *mut SOCKADDR,
+    local_len: i32,
+    remote: *mut SOCKADDR,
+    remote_len: i32,
     _data: &'a AcceptAddrsBuf,
 }
 
 struct WsaExtension {
-    guid: GUID,
+    guid: Guid,
     val: AtomicUsize,
 }
 
@@ -450,7 +448,7 @@ fn last_err() -> io::Result<Option<usize>> {
     }
 }
 
-fn cvt(i: c_int, size: DWORD) -> io::Result<Option<usize>> {
+fn cvt(i: i32, size: u32) -> io::Result<Option<usize>> {
     if i == SOCKET_ERROR {
         last_err()
     } else {
@@ -465,7 +463,7 @@ fn cvt(i: c_int, size: DWORD) -> io::Result<Option<usize>> {
 #[repr(C)]
 pub(crate) union SocketAddrCRepr {
     v4: SOCKADDR_IN,
-    v6: SOCKADDR_IN6_LH,
+    v6: SOCKADDR_IN6,
 }
 
 impl SocketAddrCRepr {
@@ -474,53 +472,42 @@ impl SocketAddrCRepr {
     }
 }
 
-fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, c_int) {
+fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
     match *addr {
         SocketAddr::V4(ref a) => {
             let sin_addr = unsafe {
-                let mut s_un = mem::zeroed::<in_addr_S_un>();
-                *s_un.S_addr_mut() = u32::from_ne_bytes(a.ip().octets());
-                IN_ADDR { S_un: s_un }
+                IN_ADDR { S_un: IN_ADDR_0 { S_addr: u32::from_ne_bytes(a.ip().octets()) } }
             };
 
             let sockaddr_in = SOCKADDR_IN {
-                sin_family: AF_INET as ADDRESS_FAMILY,
+                sin_family: AF_INET,
                 sin_port: a.port().to_be(),
                 sin_addr,
                 sin_zero: [0; 8],
             };
 
             let sockaddr = SocketAddrCRepr { v4: sockaddr_in };
-            (sockaddr, mem::size_of::<SOCKADDR_IN>() as c_int)
+            (sockaddr, mem::size_of::<SOCKADDR_IN>() as i32)
         }
         SocketAddr::V6(ref a) => {
-            let sin6_addr = unsafe {
-                let mut u = mem::zeroed::<in6_addr_u>();
-                *u.Byte_mut() = a.ip().octets();
-                IN6_ADDR { u }
-            };
-            let u = unsafe {
-                let mut u = mem::zeroed::<SOCKADDR_IN6_LH_u>();
-                *u.sin6_scope_id_mut() = a.scope_id();
-                u
-            };
-
-            let sockaddr_in6 = SOCKADDR_IN6_LH {
-                sin6_family: AF_INET6 as ADDRESS_FAMILY,
+            let sockaddr_in6 = SOCKADDR_IN6 {
+                sin6_family: AF_INET6,
                 sin6_port: a.port().to_be(),
-                sin6_addr,
+                sin6_addr: IN6_ADDR { u: IN6_ADDR_0 { Byte: a.ip().octets() } },
                 sin6_flowinfo: a.flowinfo(),
-                u,
+                Anonymous: SOCKADDR_IN6_0 {
+                    sin6_scope_id: a.scope_id()
+                }
             };
 
             let sockaddr = SocketAddrCRepr { v6: sockaddr_in6 };
-            (sockaddr, mem::size_of::<SOCKADDR_IN6_LH>() as c_int)
+            (sockaddr, mem::size_of::<SOCKADDR_IN6>() as i32)
         }
     }
 }
 
-unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: c_int) -> Option<SocketAddr> {
-    if (len as usize) < mem::size_of::<c_int>() {
+unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAddr> {
+    if (len as usize) < mem::size_of::<i32>() {
         return None;
     }
     match (*ptr).sa_family as i32 {
@@ -535,8 +522,8 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: c_int) -> Option<Socket
             );
             Some(SocketAddr::V4(SocketAddrV4::new(ip, ntoh(b.sin_port))))
         }
-        AF_INET6 if len as usize >= mem::size_of::<SOCKADDR_IN6_LH>() => {
-            let b = &*(ptr as *const SOCKADDR_IN6_LH);
+        AF_INET6 if len as usize >= mem::size_of::<SOCKADDR_IN6>() => {
+            let b = &*(ptr as *const SOCKADDR_IN6);
             let arr = b.sin6_addr.u.Byte();
             let ip = Ipv6Addr::new(
                 ((arr[0] as u16) << 8) | (arr[1] as u16),
@@ -562,7 +549,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: c_int) -> Option<Socket
 
 unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
     WSABUF {
-        len: cmp::min(slice.len(), <u_long>::max_value() as usize) as u_long,
+        len: cmp::min(slice.len(), <u32>::max_value() as usize) as u32,
         buf: slice.as_ptr() as *mut _,
     }
 }
@@ -570,7 +557,7 @@ unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
 unsafe fn result(socket: SOCKET, overlapped: *mut OVERLAPPED) -> io::Result<(usize, u32)> {
     let mut transferred = 0;
     let mut flags = 0;
-    let r = WSAGetOverlappedResult(socket, overlapped, &mut transferred, FALSE, &mut flags);
+    let r = WSAGetOverlappedResult(socket, overlapped, &mut transferred, false, &mut flags);
     if r == 0 {
         Err(io::Error::last_os_error())
     } else {
@@ -586,7 +573,7 @@ impl TcpStreamExt for TcpStream {
     ) -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut flags = 0;
-        let mut bytes_read: DWORD = 0;
+        let mut bytes_read: u32 = 0;
         let r = WSARecv(
             self.as_raw_socket() as SOCKET,
             &mut buf,
@@ -645,7 +632,7 @@ impl TcpStreamExt for TcpStream {
     }
 
     fn connect_complete(&self) -> io::Result<()> {
-        const SO_UPDATE_CONNECT_CONTEXT: c_int = 0x7010;
+        const SO_UPDATE_CONNECT_CONTEXT: i32 = 0x7010;
         let result = unsafe {
             setsockopt(
                 self.as_raw_socket() as SOCKET,
@@ -674,22 +661,23 @@ unsafe fn connect_overlapped(
     overlapped: *mut OVERLAPPED,
 ) -> io::Result<Option<usize>> {
     static CONNECTEX: WsaExtension = WsaExtension {
-        guid: GUID {
-            Data1: 0x25a207b9,
-            Data2: 0xddf3,
-            Data3: 0x4660,
-            Data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
+        guid: Guid {
+            data1: 0x25a207b9,
+            data2: 0xddf3,
+            data3: 0x4660,
+            data4: [0x8e, 0xe9, 0x76, 0xe5, 0x8c, 0x74, 0x06, 0x3e],
         },
         val: AtomicUsize::new(0),
     };
+    // TODO: LPFN_CONNECTEX?
     type ConnectEx = unsafe extern "system" fn(
         SOCKET,
         *const SOCKADDR,
-        c_int,
-        PVOID,
-        DWORD,
-        LPDWORD,
-        LPOVERLAPPED,
+        i32,
+        *mut std::ffi::c_void,
+        u32,
+        *mut u32,
+        *mut OVERLAPPED,
     ) -> BOOL;
 
     let ptr = CONNECTEX.get(socket)?;
@@ -697,7 +685,7 @@ unsafe fn connect_overlapped(
     let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
 
     let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
-    let mut bytes_sent: DWORD = 0;
+    let mut bytes_sent: u32 = 0;
     let r = connect_ex(
         socket,
         addr_buf.as_ptr(),
@@ -707,7 +695,7 @@ unsafe fn connect_overlapped(
         &mut bytes_sent,
         overlapped,
     );
-    if r == TRUE {
+    if r {
         Ok(Some(bytes_sent as usize))
     } else {
         last_err()
@@ -723,7 +711,7 @@ impl UdpSocketExt for UdpSocket {
     ) -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut flags = 0;
-        let mut received_bytes: DWORD = 0;
+        let mut received_bytes: u32 = 0;
         let r = WSARecvFrom(
             self.as_raw_socket() as SOCKET,
             &mut buf,
@@ -745,7 +733,7 @@ impl UdpSocketExt for UdpSocket {
     ) -> io::Result<Option<usize>> {
         let mut buf = slice2buf(buf);
         let mut flags = 0;
-        let mut received_bytes: DWORD = 0;
+        let mut received_bytes: u32 = 0;
         let r = WSARecv(
             self.as_raw_socket() as SOCKET,
             &mut buf,
@@ -813,23 +801,23 @@ impl TcpListenerExt for TcpListener {
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<bool> {
         static ACCEPTEX: WsaExtension = WsaExtension {
-            guid: GUID {
-                Data1: 0xb5367df1,
-                Data2: 0xcbac,
-                Data3: 0x11cf,
-                Data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
+            guid: Guid {
+                data1: 0xb5367df1,
+                data2: 0xcbac,
+                data3: 0x11cf,
+                data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
             },
             val: AtomicUsize::new(0),
         };
         type AcceptEx = unsafe extern "system" fn(
             SOCKET,
             SOCKET,
-            PVOID,
-            DWORD,
-            DWORD,
-            DWORD,
-            LPDWORD,
-            LPOVERLAPPED,
+            *mut std::ffi::c_void,
+            u32,
+            u32,
+            u32,
+            *mut u32,
+            *mut OVERLAPPED,
         ) -> BOOL;
 
         let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
@@ -848,7 +836,7 @@ impl TcpListenerExt for TcpListener {
             &mut bytes,
             overlapped,
         );
-        let succeeded = if r == TRUE {
+        let succeeded = if r {
             true
         } else {
             last_err()?;
@@ -858,7 +846,7 @@ impl TcpListenerExt for TcpListener {
     }
 
     fn accept_complete(&self, socket: &TcpStream) -> io::Result<()> {
-        const SO_UPDATE_ACCEPT_CONTEXT: c_int = 0x700B;
+        const SO_UPDATE_ACCEPT_CONTEXT: i32 = 0x700B;
         let me = self.as_raw_socket();
         let result = unsafe {
             setsockopt(
@@ -866,7 +854,7 @@ impl TcpListenerExt for TcpListener {
                 SOL_SOCKET,
                 SO_UPDATE_ACCEPT_CONTEXT,
                 &me as *const _ as *const _,
-                mem::size_of_val(&me) as c_int,
+                mem::size_of_val(&me) as i32,
             )
         };
         if result == 0 {
@@ -889,7 +877,7 @@ impl SocketAddrBuf {
     pub fn new() -> SocketAddrBuf {
         SocketAddrBuf {
             buf: unsafe { mem::zeroed() },
-            len: mem::size_of::<SOCKADDR_STORAGE>() as c_int,
+            len: mem::size_of::<SOCKADDR_STORAGE>() as i32,
         }
     }
 
@@ -906,23 +894,23 @@ impl SocketAddrBuf {
 }
 
 static GETACCEPTEXSOCKADDRS: WsaExtension = WsaExtension {
-    guid: GUID {
-        Data1: 0xb5367df2,
-        Data2: 0xcbac,
-        Data3: 0x11cf,
-        Data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
+    guid: Guid {
+        data1: 0xb5367df2,
+        data2: 0xcbac,
+        data3: 0x11cf,
+        data4: [0x95, 0xca, 0x00, 0x80, 0x5f, 0x48, 0xa1, 0x92],
     },
     val: AtomicUsize::new(0),
 };
 type GetAcceptExSockaddrs = unsafe extern "system" fn(
-    PVOID,
-    DWORD,
-    DWORD,
-    DWORD,
-    *mut LPSOCKADDR,
-    LPINT,
-    *mut LPSOCKADDR,
-    LPINT,
+    *mut std::ffi::c_void,
+    u32,
+    u32,
+    u32,
+    *mut *mut SOCKADDR,
+    *mut i32,
+    *mut *mut SOCKADDR,
+    *mut i32,
 );
 
 impl AcceptAddrsBuf {
@@ -964,13 +952,13 @@ impl AcceptAddrsBuf {
         }
     }
 
-    fn args(&self) -> (PVOID, DWORD, DWORD, DWORD) {
+    fn args(&self) -> (*mut std::ffi::c_void, u32, u32, u32) {
         let remote_offset = unsafe { &(*(0 as *const AcceptAddrsBuf)).remote as *const _ as usize };
         (
             self as *const _ as *mut _,
             0,
-            remote_offset as DWORD,
-            (mem::size_of_val(self) - remote_offset) as DWORD,
+            remote_offset as u32,
+            (mem::size_of_val(self) - remote_offset) as u32,
         )
     }
 }
@@ -1000,9 +988,9 @@ impl WsaExtension {
                 socket,
                 SIO_GET_EXTENSION_FUNCTION_POINTER,
                 &self.guid as *const _ as *mut _,
-                mem::size_of_val(&self.guid) as DWORD,
+                mem::size_of_val(&self.guid) as u32,
                 &mut ret as *mut _ as *mut _,
-                mem::size_of_val(&ret) as DWORD,
+                mem::size_of_val(&ret) as u32,
                 &mut bytes,
                 0 as *mut _,
                 None,

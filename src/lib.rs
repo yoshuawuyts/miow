@@ -9,9 +9,6 @@ use std::cmp;
 use std::io;
 use std::time::Duration;
 
-use winapi::shared::minwindef::*;
-use winapi::um::winbase::*;
-
 #[cfg(test)]
 macro_rules! t {
     ($e:expr) => {
@@ -24,12 +21,18 @@ macro_rules! t {
 
 mod handle;
 mod overlapped;
+mod bindings;
 
 pub mod iocp;
 pub mod net;
 pub mod pipe;
 
 pub use crate::overlapped::Overlapped;
+
+use crate::bindings::{
+    Windows::Win32::Foundation::*,
+    Windows::Win32::System::WindowsProgramming::*,
+};
 
 fn cvt(i: BOOL) -> io::Result<BOOL> {
     if i == 0 {

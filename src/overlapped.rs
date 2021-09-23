@@ -3,9 +3,11 @@ use std::io;
 use std::mem;
 use std::ptr;
 
-use winapi::shared::ntdef::{HANDLE, NULL};
-use winapi::um::minwinbase::*;
-use winapi::um::synchapi::*;
+use crate::bindings::{
+    Windows::Win32::Foundation::*,
+    Windows::Win32::System::SystemServices::*,
+    Windows::Win32::System::Threading::*,
+};
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
@@ -31,11 +33,11 @@ impl Overlapped {
 
     /// Creates a new `Overlapped` with an initialized non-null `hEvent`.  The caller is
     /// responsible for calling `CloseHandle` on the `hEvent` field of the returned
-    /// `Overlapped`.  The event is created with `bManualReset` set to `FALSE`, meaning after a
+    /// `Overlapped`.  The event is created with `bManualReset` set to `false`, meaning after a
     /// single thread waits on the event, it will be reset.
     pub fn initialize_with_autoreset_event() -> io::Result<Overlapped> {
         let event = unsafe { CreateEventW(ptr::null_mut(), 0i32, 0i32, ptr::null()) };
-        if event == NULL {
+        if event.is_invalid() {
             return Err(io::Error::last_os_error());
         }
         let mut overlapped = Self::zero();
