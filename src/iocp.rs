@@ -27,6 +27,7 @@ pub struct CompletionPort {
 /// provided to a completion port, or they are read out of a completion port.
 /// The fields of each status are read through its accessor methods.
 #[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct CompletionStatus(OVERLAPPED_ENTRY);
 
 impl fmt::Debug for CompletionStatus {
@@ -226,6 +227,9 @@ impl CompletionStatus {
     /// This method will wrap the `OVERLAPPED_ENTRY` in a `CompletionStatus`,
     /// returning the wrapped structure.
     pub fn from_entry(entry: &OVERLAPPED_ENTRY) -> &CompletionStatus {
+        // Safety: CompletionStatus is repr(transparent) w/ OVERLAPPED_ENTRY, so
+        // a reference to one is guaranteed to be layout compatible with the
+        // reference to another.
         unsafe { &*(entry as *const _ as *const _) }
     }
 
