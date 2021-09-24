@@ -531,6 +531,18 @@ pub mod Windows {
                     type Abi = Self;
                     type DefaultType = Self;
                 }
+                pub type LPFN_ACCEPTEX =
+                    unsafe extern "system" fn(
+                        slistensocket: SOCKET,
+                        sacceptsocket: SOCKET,
+                        lpoutputbuffer: *mut ::std::ffi::c_void,
+                        dwreceivedatalength: u32,
+                        dwlocaladdresslength: u32,
+                        dwremoteaddresslength: u32,
+                        lpdwbytesreceived: *mut u32,
+                        lpoverlapped: *mut super::super::System::SystemServices::OVERLAPPED,
+                    )
+                        -> super::super::Foundation::BOOL;
                 pub type LPFN_CONNECTEX =
                     unsafe extern "system" fn(
                         s: SOCKET,
@@ -542,6 +554,16 @@ pub mod Windows {
                         lpoverlapped: *mut super::super::System::SystemServices::OVERLAPPED,
                     )
                         -> super::super::Foundation::BOOL;
+                pub type LPFN_GETACCEPTEXSOCKADDRS = unsafe extern "system" fn(
+                    lpoutputbuffer: *const ::std::ffi::c_void,
+                    dwreceivedatalength: u32,
+                    dwlocaladdresslength: u32,
+                    dwremoteaddresslength: u32,
+                    localsockaddr: *mut *mut SOCKADDR,
+                    localsockaddrlength: *mut i32,
+                    remotesockaddr: *mut *mut SOCKADDR,
+                    remotesockaddrlength: *mut i32,
+                );
                 pub type LPWSAOVERLAPPED_COMPLETION_ROUTINE = unsafe extern "system" fn(
                     dwerror: u32,
                     cbtransferred: u32,

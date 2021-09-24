@@ -800,20 +800,10 @@ impl TcpListenerExt for TcpListener {
             },
             val: AtomicUsize::new(0),
         };
-        type AcceptEx = unsafe extern "system" fn(
-            SOCKET,
-            SOCKET,
-            *mut std::ffi::c_void,
-            u32,
-            u32,
-            u32,
-            *mut u32,
-            *mut OVERLAPPED,
-        ) -> BOOL;
 
         let ptr = ACCEPTEX.get(SOCKET(self.as_raw_socket() as _))?;
         assert!(ptr != 0);
-        let accept_ex = mem::transmute::<_, AcceptEx>(ptr);
+        let accept_ex = mem::transmute::<_, LPFN_ACCEPTEX>(ptr);
 
         let mut bytes = 0;
         let (a, b, c, d) = (*addrs).args();
@@ -893,16 +883,6 @@ static GETACCEPTEXSOCKADDRS: WsaExtension = WsaExtension {
     },
     val: AtomicUsize::new(0),
 };
-type GetAcceptExSockaddrs = unsafe extern "system" fn(
-    *mut std::ffi::c_void,
-    u32,
-    u32,
-    u32,
-    *mut *mut SOCKADDR,
-    *mut i32,
-    *mut *mut SOCKADDR,
-    *mut i32,
-);
 
 impl AcceptAddrsBuf {
     /// Creates a new blank buffer ready to be passed to a call to
@@ -927,7 +907,7 @@ impl AcceptAddrsBuf {
         let ptr = GETACCEPTEXSOCKADDRS.get(SOCKET(socket.as_raw_socket() as _))?;
         assert!(ptr != 0);
         unsafe {
-            let get_sockaddrs = mem::transmute::<_, GetAcceptExSockaddrs>(ptr);
+            let get_sockaddrs = mem::transmute::<_, LPFN_GETACCEPTEXSOCKADDRS>(ptr);
             let (a, b, c, d) = self.args();
             get_sockaddrs(
                 a,
