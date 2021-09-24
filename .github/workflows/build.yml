@@ -1,0 +1,82 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os: windows-latest
+          rust: stable
+          other: x86_64-pc-windows-msvc
+        - os: windows-latest
+          rust: nightly
+          other: x86_64-pc-windows-msvc
+        - os: windows-latest
+          rust: stable
+          other: i686-pc-windows-msvc
+        - os: windows-latest
+          rust: nightly
+          other: i686-pc-windows-msvc
+        - os: ubuntu-latest
+          rust: stable
+          other: i686-unknown-linux-gnu
+    steps:
+    - uses: actions/checkout@v2
+    - run: rustup update --no-self-update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+    - run: rustup target add ${{ matrix.other }}
+
+    - name: linux build
+      run: cargo build
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: windows build
+      run: cargo test --all --target ${{ matrix.other }}
+      if: matrix.os == 'windows-latest'
+
+  cargo_fmt:
+    runs-on: windows-latest
+    name: check cargo formatting
+    steps:
+    - uses: actions/checkout@v2
+    - name: run cargo fmt
+      run: cargo fmt --all -- --check
+
+  cargo_doc:
+    runs-on: ubuntu-latest
+    name: check cargo docs
+    steps:
+    - uses: actions/checkout@v2
+    - name: run cargo doc
+      run: cargo doc --no-deps
+
+  windows_fmt:
+    runs-on: windows-latest
+    name: check macro formatting
+    steps:
+    - uses: actions/checkout@v2
+    - name: run windows_fmt
+      run: cargo run -p windows_fmt
+    - name: diff results
+      shell: bash
+      run: git diff --exit-code || (echo '::error::Some `build!` macros were improperly formatted. Please run `cargo run -p windows_fmt` and push again'; exit 1)
+
+  windows_bindings:
+    runs-on: windows-latest
+    name: check bindings
+    steps:
+    - uses: actions/checkout@v2
+    - name: run bindings
+      run: cargo run -p bindings
+    - name: diff results
+      shell: bash
+      run: git diff --exit-code || (echo '::error::Generated bindings are out-of-date. Please run `cargo run -p bindings`'; exit 1)
