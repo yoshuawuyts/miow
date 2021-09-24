@@ -287,7 +287,9 @@ mod tests {
     fn timeout() {
         let c = CompletionPort::new(1).unwrap();
         let err = c.get(Some(Duration::from_millis(1))).unwrap_err();
-        assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as i32));
+        // https://github.com/microsoft/win32metadata/issues/678
+        const WAIT_TIMEOUT: i32 = 258;
+        assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT));
     }
 
     #[test]
