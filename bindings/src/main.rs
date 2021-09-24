@@ -1,5 +1,5 @@
 fn main() -> std::io::Result<()> {
-    let tokens = windows_macros::generate! {
+    let tokens = windows::generate! {
         Windows::Win32::Foundation::{CloseHandle, INVALID_HANDLE_VALUE},
         Windows::Win32::NetworkManagement::IpHelper::ADDRESS_FAMILY,
         Windows::Win32::Networking::WinSock::{
@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
         },
     };
 
-    let mut path: std::path::PathBuf = windows_reader::workspace_dir().into();
+    let mut path: std::path::PathBuf = windows::workspace_dir().into();
     path.push("src");
     path.push("bindings.rs");
 

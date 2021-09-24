@@ -115,7 +115,9 @@ pub mod Windows {
                     ::windows::Param::Owned(self.into())
                 }
             }
-            pub unsafe fn CloseHandle<'a>(hobject: impl ::windows::IntoParam<'a, HANDLE>) -> BOOL {
+            pub unsafe fn CloseHandle<'a, Param0: ::windows::IntoParam<'a, HANDLE>>(
+                hobject: Param0,
+            ) -> BOOL {
                 #[cfg(windows)]
                 {
                     #[link(name = "kernel32")]
@@ -818,11 +820,15 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSAGetOverlappedResult<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSAGetOverlappedResult<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, SOCKET>,
+                    Param3: ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                >(
+                    s: Param0,
                     lpoverlapped: *const super::super::System::SystemServices::OVERLAPPED,
                     lpcbtransfer: *mut u32,
-                    fwait: impl ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                    fwait: Param3,
                     lpdwflags: *mut u32,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
@@ -848,8 +854,8 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSAIoctl<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSAIoctl<'a, Param0: ::windows::IntoParam<'a, SOCKET>>(
+                    s: Param0,
                     dwiocontrolcode: u32,
                     lpvinbuffer: *const ::std::ffi::c_void,
                     cbinbuffer: u32,
@@ -890,8 +896,8 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSARecv<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSARecv<'a, Param0: ::windows::IntoParam<'a, SOCKET>>(
+                    s: Param0,
                     lpbuffers: *const WSABUF,
                     dwbuffercount: u32,
                     lpnumberofbytesrecvd: *mut u32,
@@ -926,8 +932,8 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSARecvFrom<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSARecvFrom<'a, Param0: ::windows::IntoParam<'a, SOCKET>>(
+                    s: Param0,
                     lpbuffers: *const WSABUF,
                     dwbuffercount: u32,
                     lpnumberofbytesrecvd: *mut u32,
@@ -968,8 +974,8 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSASend<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSASend<'a, Param0: ::windows::IntoParam<'a, SOCKET>>(
+                    s: Param0,
                     lpbuffers: *const WSABUF,
                     dwbuffercount: u32,
                     lpnumberofbytessent: *mut u32,
@@ -1004,8 +1010,8 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WSASendTo<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn WSASendTo<'a, Param0: ::windows::IntoParam<'a, SOCKET>>(
+                    s: Param0,
                     lpbuffers: *const WSABUF,
                     dwbuffercount: u32,
                     lpnumberofbytessent: *mut u32,
@@ -1163,11 +1169,15 @@ pub mod Windows {
                     type Abi = Self;
                     type DefaultType = Self;
                 }
-                pub unsafe fn setsockopt<'a>(
-                    s: impl ::windows::IntoParam<'a, SOCKET>,
+                pub unsafe fn setsockopt<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, SOCKET>,
+                    Param3: ::windows::IntoParam<'a, super::super::Foundation::PSTR>,
+                >(
+                    s: Param0,
                     level: i32,
                     optname: i32,
-                    optval: impl ::windows::IntoParam<'a, super::super::Foundation::PSTR>,
+                    optval: Param3,
                     optlen: i32,
                 ) -> i32 {
                     #[cfg(windows)]
@@ -1260,12 +1270,13 @@ pub mod Windows {
                 clippy::all
             )]
             pub mod FileSystem {
-                pub unsafe fn CreateIoCompletionPort<'a>(
-                    filehandle: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
-                    existingcompletionport: impl ::windows::IntoParam<
-                        'a,
-                        super::super::Foundation::HANDLE,
-                    >,
+                pub unsafe fn CreateIoCompletionPort<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                    Param1: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    filehandle: Param0,
+                    existingcompletionport: Param1,
                     completionkey: usize,
                     numberofconcurrentthreads: u32,
                 ) -> super::super::Foundation::HANDLE {
@@ -1421,8 +1432,11 @@ pub mod Windows {
                         Self(self.0.not())
                     }
                 }
-                pub unsafe fn FlushFileBuffers<'a>(
-                    hfile: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn FlushFileBuffers<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    hfile: Param0,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
                     {
@@ -1437,8 +1451,11 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn GetQueuedCompletionStatus<'a>(
-                    completionport: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn GetQueuedCompletionStatus<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    completionport: Param0,
                     lpnumberofbytestransferred: *mut u32,
                     lpcompletionkey: *mut usize,
                     lpoverlapped: *mut *mut super::super::System::SystemServices::OVERLAPPED,
@@ -1467,13 +1484,17 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn GetQueuedCompletionStatusEx<'a>(
-                    completionport: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn GetQueuedCompletionStatusEx<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                    Param5: ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                >(
+                    completionport: Param0,
                     lpcompletionportentries: *mut OVERLAPPED_ENTRY,
                     ulcount: u32,
                     ulnumentriesremoved: *mut u32,
                     dwmilliseconds: u32,
-                    falertable: impl ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                    falertable: Param5,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
                     {
@@ -1540,8 +1561,11 @@ pub mod Windows {
                     type Abi = Self;
                     type DefaultType = Self;
                 }
-                pub unsafe fn PostQueuedCompletionStatus<'a>(
-                    completionport: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn PostQueuedCompletionStatus<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    completionport: Param0,
                     dwnumberofbytestransferred: u32,
                     dwcompletionkey: usize,
                     lpoverlapped: *const super::super::System::SystemServices::OVERLAPPED,
@@ -1567,8 +1591,11 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn ReadFile<'a>(
-                    hfile: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn ReadFile<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    hfile: Param0,
                     lpbuffer: *mut ::std::ffi::c_void,
                     nnumberofbytestoread: u32,
                     lpnumberofbytesread: *mut u32,
@@ -1597,8 +1624,11 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn WriteFile<'a>(
-                    hfile: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn WriteFile<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    hfile: Param0,
                     lpbuffer: *const ::std::ffi::c_void,
                     nnumberofbytestowrite: u32,
                     lpnumberofbyteswritten: *mut u32,
@@ -5699,8 +5729,11 @@ pub mod Windows {
                 clippy::all
             )]
             pub mod Pipes {
-                pub unsafe fn ConnectNamedPipe<'a>(
-                    hnamedpipe: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn ConnectNamedPipe<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    hnamedpipe: Param0,
                     lpoverlapped: *mut super::SystemServices::OVERLAPPED,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
@@ -5720,8 +5753,11 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn CreateNamedPipeW<'a>(
-                    lpname: impl ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                pub unsafe fn CreateNamedPipeW<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                >(
+                    lpname: Param0,
                     dwopenmode: u32,
                     dwpipemode: u32,
                     nmaxinstances: u32,
@@ -5786,8 +5822,11 @@ pub mod Windows {
                     #[cfg(not(windows))]
                     unimplemented!("Unsupported target OS");
                 }
-                pub unsafe fn DisconnectNamedPipe<'a>(
-                    hnamedpipe: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn DisconnectNamedPipe<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                >(
+                    hnamedpipe: Param0,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
                     {
@@ -5904,8 +5943,11 @@ pub mod Windows {
                         Self(self.0.not())
                     }
                 }
-                pub unsafe fn WaitNamedPipeW<'a>(
-                    lpnamedpipename: impl ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                pub unsafe fn WaitNamedPipeW<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                >(
+                    lpnamedpipename: Param0,
                     ntimeout: WAIT_NAMED_PIPE_TIME_OUT_FLAGS,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
@@ -5955,11 +5997,15 @@ pub mod Windows {
                     type Abi = Self;
                     type DefaultType = Self;
                 }
-                pub unsafe fn GetOverlappedResult<'a>(
-                    hfile: impl ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                pub unsafe fn GetOverlappedResult<
+                    'a,
+                    Param0: ::windows::IntoParam<'a, super::super::Foundation::HANDLE>,
+                    Param3: ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                >(
+                    hfile: Param0,
                     lpoverlapped: *const OVERLAPPED,
                     lpnumberofbytestransferred: *mut u32,
-                    bwait: impl ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                    bwait: Param3,
                 ) -> super::super::Foundation::BOOL {
                     #[cfg(windows)]
                     {
@@ -6069,11 +6115,16 @@ pub mod Windows {
                 clippy::all
             )]
             pub mod Threading {
-                pub unsafe fn CreateEventW<'a>(
+                pub unsafe fn CreateEventW<
+                    'a,
+                    Param1: ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                    Param2: ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
+                    Param3: ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                >(
                     lpeventattributes: *const super::super::Security::SECURITY_ATTRIBUTES,
-                    bmanualreset: impl ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
-                    binitialstate: impl ::windows::IntoParam<'a, super::super::Foundation::BOOL>,
-                    lpname: impl ::windows::IntoParam<'a, super::super::Foundation::PWSTR>,
+                    bmanualreset: Param1,
+                    binitialstate: Param2,
+                    lpname: Param3,
                 ) -> super::super::Foundation::HANDLE {
                     #[cfg(windows)]
                     {

@@ -3,7 +3,5 @@ name = "bindings"
 version = "0.0.0"
 edition = "2018"
 
-# TODO: re-export these from Windows crate so only a single dependency is needed
 [dependencies]
-windows_macros = "0.20"
-windows_reader = "0.20"
+windows = { path = "/git/windows-rs" }
