@@ -45,7 +45,6 @@ impl CompletionPort {
     /// allowed for threads associated with this port. Consult the Windows
     /// documentation for more information about this value.
     pub fn new(threads: u32) -> io::Result<CompletionPort> {
-        // TODO: should use ? to propagate error
         let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, None, 0, threads) };
         if ret.0 == 0 {
             Err(io::Error::last_os_error())

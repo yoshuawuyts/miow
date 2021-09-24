@@ -529,6 +529,17 @@ pub mod Windows {
                     type Abi = Self;
                     type DefaultType = Self;
                 }
+                pub type LPFN_CONNECTEX =
+                    unsafe extern "system" fn(
+                        s: SOCKET,
+                        name: *const SOCKADDR,
+                        namelen: i32,
+                        lpsendbuffer: *const ::std::ffi::c_void,
+                        dwsenddatalength: u32,
+                        lpdwbytessent: *mut u32,
+                        lpoverlapped: *mut super::super::System::SystemServices::OVERLAPPED,
+                    )
+                        -> super::super::Foundation::BOOL;
                 pub type LPWSAOVERLAPPED_COMPLETION_ROUTINE = unsafe extern "system" fn(
                     dwerror: u32,
                     cbtransferred: u32,

@@ -670,20 +670,10 @@ unsafe fn connect_overlapped(
         },
         val: AtomicUsize::new(0),
     };
-    // TODO: LPFN_CONNECTEX?
-    type ConnectEx = unsafe extern "system" fn(
-        SOCKET,
-        *const SOCKADDR,
-        i32,
-        *mut std::ffi::c_void,
-        u32,
-        *mut u32,
-        *mut OVERLAPPED,
-    ) -> BOOL;
 
     let ptr = CONNECTEX.get(socket)?;
     assert!(ptr != 0);
-    let connect_ex = mem::transmute::<_, ConnectEx>(ptr);
+    let connect_ex = mem::transmute::<_, LPFN_CONNECTEX>(ptr);
 
     let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
     let mut bytes_sent: u32 = 0;

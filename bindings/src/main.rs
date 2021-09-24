@@ -4,8 +4,8 @@ fn main() -> std::io::Result<()> {
         Windows::Win32::NetworkManagement::IpHelper::ADDRESS_FAMILY,
         Windows::Win32::Networking::WinSock::{
             setsockopt, WSAGetLastError, WSAGetOverlappedResult, WSAIoctl, WSARecv, WSARecvFrom,
-            WSASend, WSASendTo, SOCKADDR_IN, SOCKADDR_IN6, SOCKADDR_STORAGE, SOCKET_ERROR,
-            SOL_SOCKET,
+            WSASend, WSASendTo, LPFN_CONNECTEX, SOCKADDR_IN, SOCKADDR_IN6, SOCKADDR_STORAGE,
+            SOCKET_ERROR, SOL_SOCKET,
         },
         Windows::Win32::Storage::FileSystem::{CreateIoCompletionPort, ReadFile, WriteFile},
         Windows::Win32::Storage::FileSystem::{
