@@ -2,6 +2,7 @@ use std::fmt;
 use std::io;
 use std::mem;
 use std::ptr;
+use windows::Handle;
 
 use crate::bindings::{
     Windows::Win32::Foundation::*,
@@ -36,7 +37,7 @@ impl Overlapped {
     /// `Overlapped`.  The event is created with `bManualReset` set to `false`, meaning after a
     /// single thread waits on the event, it will be reset.
     pub fn initialize_with_autoreset_event() -> io::Result<Overlapped> {
-        let event = unsafe { CreateEventW(ptr::null_mut(), 0i32, 0i32, ptr::null()) };
+        let event = unsafe { CreateEventW(ptr::null_mut(), false, false, None) };
         if event.is_invalid() {
             return Err(io::Error::last_os_error());
         }
@@ -69,15 +70,13 @@ impl Overlapped {
     /// handles that are on a seeking device that supports the concept of an
     /// offset.
     pub fn set_offset(&mut self, offset: u64) {
-        let s = unsafe { self.0.u.s_mut() };
-        s.Offset = offset as u32;
-        s.OffsetHigh = (offset >> 32) as u32;
+        self.0.Anonymous.Anonymous.Offset = offset as u32;
+        self.0.Anonymous.Anonymous.OffsetHigh = (offset >> 32) as u32;
     }
 
     /// Reads the offset inside this overlapped structure.
     pub fn offset(&self) -> u64 {
-        let s = unsafe { self.0.u.s() };
-        (s.Offset as u64) | ((s.OffsetHigh as u64) << 32)
+        (self.0.Anonymous.Anonymous.Offset as u64) | ((self.0.Anonymous.Anonymous.OffsetHigh as u64) << 32)
     }
 
     /// Sets the `hEvent` field of this structure.

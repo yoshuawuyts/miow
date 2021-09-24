@@ -100,7 +100,7 @@ impl Handle {
         );
         match res {
             Ok(_) => (),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32) => (),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => (),
             Err(e) => return Err(e),
         }
 
@@ -108,7 +108,7 @@ impl Handle {
         let res = crate::cvt( GetOverlappedResult(self.0, overlapped, &mut bytes, wait) );
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && !wait => {
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE.0 as i32) && !wait => {
                 Ok(None)
             }
             Err(e) => Err(e),
@@ -153,7 +153,7 @@ impl Handle {
         );
         match res {
             Ok(_) => (),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32) => (),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => (),
             Err(e) => return Err(e),
         }
 
@@ -161,7 +161,7 @@ impl Handle {
         let res = crate::cvt( GetOverlappedResult(self.0, overlapped, &mut bytes, wait) );
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && !wait => {
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE.0 as i32) && !wait => {
                 Ok(None)
             }
             Err(e) => Err(e),

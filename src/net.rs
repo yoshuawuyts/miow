@@ -441,10 +441,10 @@ fn ntoh<I: NetInt>(i: I) -> I {
 
 fn last_err() -> io::Result<Option<usize>> {
     let err = unsafe { WSAGetLastError() };
-    if err == WSA_IO_PENDING as i32 {
+    if err == WSA_IO_PENDING {
         Ok(None)
     } else {
-        Err(io::Error::from_raw_os_error(err))
+        Err(io::Error::from_raw_os_error(err.0))
     }
 }
 
@@ -480,10 +480,10 @@ fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
             };
 
             let sockaddr_in = SOCKADDR_IN {
-                sin_family: AF_INET,
+                sin_family: AF_INET.0 as _,
                 sin_port: a.port().to_be(),
                 sin_addr,
-                sin_zero: [0; 8],
+                ..Default::default()
             };
 
             let sockaddr = SocketAddrCRepr { v4: sockaddr_in };
@@ -491,7 +491,7 @@ fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
         }
         SocketAddr::V6(ref a) => {
             let sockaddr_in6 = SOCKADDR_IN6 {
-                sin6_family: AF_INET6,
+                sin6_family: AF_INET6.0 as _,
                 sin6_port: a.port().to_be(),
                 sin6_addr: IN6_ADDR { u: IN6_ADDR_0 { Byte: a.ip().octets() } },
                 sin6_flowinfo: a.flowinfo(),
@@ -510,7 +510,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
     if (len as usize) < mem::size_of::<i32>() {
         return None;
     }
-    match (*ptr).sa_family as i32 {
+    match (*ptr).sa_family as ADDRESS_FAMILY {
         AF_INET if len as usize >= mem::size_of::<SOCKADDR_IN>() => {
             let b = &*(ptr as *const SOCKADDR_IN);
             let ip = ntoh(*b.sin_addr.S_un.S_addr());

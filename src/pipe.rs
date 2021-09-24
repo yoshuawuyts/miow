@@ -65,6 +65,8 @@ use crate::bindings::{
     Windows::Win32::Security::*,
 };
 
+use  std::os::windows::raw::HANDLE;
+
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]
 pub struct AnonRead(Handle);
