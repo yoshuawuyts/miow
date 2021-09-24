@@ -13,10 +13,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use windows::Guid;
 
 use crate::bindings::{
-    Windows::Win32::Foundation::*,
-    Windows::Win32::Networking::WinSock::*,
-    Windows::Win32::System::SystemServices::*,
-    Windows::Win32::NetworkManagement::IpHelper::*,
+    Windows::Win32::Foundation::*, Windows::Win32::NetworkManagement::IpHelper::*,
+    Windows::Win32::Networking::WinSock::*, Windows::Win32::System::SystemServices::*,
 };
 
 /// A type to represent a buffer in which a socket address will be stored.
@@ -472,9 +470,11 @@ impl SocketAddrCRepr {
 fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
     match *addr {
         SocketAddr::V4(ref a) => {
-            let sin_addr = 
-                IN_ADDR { S_un: IN_ADDR_0 { S_addr: u32::from_ne_bytes(a.ip().octets()) } }
-            ;
+            let sin_addr = IN_ADDR {
+                S_un: IN_ADDR_0 {
+                    S_addr: u32::from_ne_bytes(a.ip().octets()),
+                },
+            };
 
             let sockaddr_in = SOCKADDR_IN {
                 sin_family: AF_INET.0 as _,
@@ -490,11 +490,15 @@ fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
             let sockaddr_in6 = SOCKADDR_IN6 {
                 sin6_family: AF_INET6.0 as _,
                 sin6_port: a.port().to_be(),
-                sin6_addr: IN6_ADDR { u: IN6_ADDR_0 { Byte: a.ip().octets() } },
+                sin6_addr: IN6_ADDR {
+                    u: IN6_ADDR_0 {
+                        Byte: a.ip().octets(),
+                    },
+                },
                 sin6_flowinfo: a.flowinfo(),
                 Anonymous: SOCKADDR_IN6_0 {
-                    sin6_scope_id: a.scope_id()
-                }
+                    sin6_scope_id: a.scope_id(),
+                },
             };
 
             let sockaddr = SocketAddrCRepr { v6: sockaddr_in6 };

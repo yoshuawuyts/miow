@@ -19,9 +19,9 @@ macro_rules! t {
     };
 }
 
+mod bindings;
 mod handle;
 mod overlapped;
-mod bindings;
 
 pub mod iocp;
 pub mod net;
@@ -30,8 +30,7 @@ pub mod pipe;
 pub use crate::overlapped::Overlapped;
 
 use crate::bindings::{
-    Windows::Win32::Foundation::*,
-    Windows::Win32::System::WindowsProgramming::*,
+    Windows::Win32::Foundation::*, Windows::Win32::System::WindowsProgramming::*,
 };
 
 fn cvt(i: BOOL) -> io::Result<BOOL> {

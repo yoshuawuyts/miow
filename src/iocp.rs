@@ -11,8 +11,7 @@ use crate::handle::Handle;
 use crate::Overlapped;
 
 use crate::bindings::{
-    Windows::Win32::Foundation::*,
-    Windows::Win32::Storage::FileSystem::*,
+    Windows::Win32::Foundation::*, Windows::Win32::Storage::FileSystem::*,
     Windows::Win32::System::SystemServices::*,
 };
 
@@ -85,8 +84,7 @@ impl CompletionPort {
 
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
         assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
-        let ret =
-            unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as usize, 0) };
+        let ret = unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as usize, 0) };
         if ret.0 == 0 {
             Err(io::Error::last_os_error())
         } else {

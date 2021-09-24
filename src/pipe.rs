@@ -56,13 +56,10 @@ use crate::handle::Handle;
 use crate::overlapped::Overlapped;
 
 use crate::bindings::{
-    Windows::Win32::Foundation::*,
-    Windows::Win32::System::Pipes::*,
-    Windows::Win32::System::Diagnostics::Debug::*,
-    Windows::Win32::System::SystemServices::*,
+    Windows::Win32::Foundation::*, Windows::Win32::Security::*,
+    Windows::Win32::Storage::FileSystem::*, Windows::Win32::System::Diagnostics::Debug::*,
+    Windows::Win32::System::Pipes::*, Windows::Win32::System::SystemServices::*,
     Windows::Win32::System::WindowsProgramming::*,
-    Windows::Win32::Storage::FileSystem::*,
-    Windows::Win32::Security::*,
 };
 
 /// Readable half of an anonymous pipe.
@@ -466,7 +463,9 @@ impl NamedPipeBuilder {
     pub fn new<A: AsRef<OsStr>>(addr: A) -> NamedPipeBuilder {
         NamedPipeBuilder {
             name: addr.as_ref().encode_wide().chain(Some(0)).collect(),
-            dwOpenMode: PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE.0 | FILE_FLAG_OVERLAPPED.0,
+            dwOpenMode: PIPE_ACCESS_DUPLEX
+                | FILE_FLAG_FIRST_PIPE_INSTANCE.0
+                | FILE_FLAG_OVERLAPPED.0,
             dwPipeMode: PIPE_TYPE_BYTE.0,
             nMaxInstances: PIPE_UNLIMITED_INSTANCES,
             nOutBufferSize: 65536,
