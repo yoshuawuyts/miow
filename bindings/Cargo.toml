@@ -4,4 +4,4 @@ version = "0.0.0"
 edition = "2018"
 
 [dependencies]
-windows = { path = "/git/windows-rs" }
+windows = "0.21.0"
