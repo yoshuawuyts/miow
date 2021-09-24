@@ -943,6 +943,7 @@ impl AcceptAddrsBuf {
         }
     }
 
+    #[allow(deref_nullptr)]
     fn args(&self) -> (*mut std::ffi::c_void, u32, u32, u32) {
         let remote_offset = unsafe { &(*(0 as *const AcceptAddrsBuf)).remote as *const _ as usize };
         (
