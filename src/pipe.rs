@@ -65,8 +65,6 @@ use crate::bindings::{
     Windows::Win32::Security::*,
 };
 
-use  std::os::windows::raw::HANDLE;
-
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]
 pub struct AnonRead(Handle);
@@ -98,9 +96,9 @@ pub struct NamedPipeBuilder {
 /// normally use this as a suggestion and it's not guaranteed that the buffer
 /// will be precisely this size.
 pub fn anonymous(buffer_size: u32) -> io::Result<(AnonRead, AnonWrite)> {
-    let mut read = 0 as HANDLE;
-    let mut write = 0 as HANDLE;
-    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size) })?;
+    let mut read = Default::default();
+    let mut write = Default::default();
+    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, std::ptr::null_mut(), buffer_size) })?;
     Ok((AnonRead(Handle::new(read)), AnonWrite(Handle::new(write))))
 }
 
@@ -116,18 +114,18 @@ impl<'a> Read for &'a AnonRead {
 }
 
 impl AsRawHandle for AnonRead {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
+        self.0.raw().0 as _
     }
 }
 impl FromRawHandle for AnonRead {
-    unsafe fn from_raw_handle(handle: HANDLE) -> AnonRead {
-        AnonRead(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> AnonRead {
+        AnonRead(Handle::new(HANDLE(handle as _)))
     }
 }
 impl IntoRawHandle for AnonRead {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> *mut std::ffi::c_void {
+        self.0.into_raw().0 as _
     }
 }
 
@@ -149,18 +147,18 @@ impl<'a> Write for &'a AnonWrite {
 }
 
 impl AsRawHandle for AnonWrite {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
+        self.0.raw().0 as _
     }
 }
 impl FromRawHandle for AnonWrite {
-    unsafe fn from_raw_handle(handle: HANDLE) -> AnonWrite {
-        AnonWrite(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> AnonWrite {
+        AnonWrite(Handle::new(HANDLE(handle as _)))
     }
 }
 impl IntoRawHandle for AnonWrite {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> *mut std::ffi::c_void {
+        self.0.into_raw().0 as _
     }
 }
 
@@ -187,7 +185,7 @@ fn _connect(addr: &OsStr) -> io::Result<File> {
             .or_else(|_| w.open(addr));
         match res {
             Ok(f) => return Ok(f),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => {}
+            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY.0 as i32) => {}
             Err(e) => return Err(e),
         }
 
@@ -228,7 +226,7 @@ impl NamedPipe {
     fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
         let timeout = crate::dur2ms(timeout);
-        crate::cvt(unsafe { WaitNamedPipeW(addr.as_ptr(), timeout) }).map(|_| ())
+        crate::cvt(unsafe { WaitNamedPipeW(PWSTR(addr.as_ptr() as _), timeout.into()) }).map(|_| ())
     }
 
     /// Connects this named pipe to a client, blocking until one becomes
@@ -240,7 +238,7 @@ impl NamedPipe {
     pub fn connect(&self) -> io::Result<()> {
         match crate::cvt(unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _) }) {
             Ok(_) => Ok(()),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(()),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED.0 as i32) => Ok(()),
             Err(e) => Err(e),
         }
     }
@@ -267,9 +265,9 @@ impl NamedPipe {
     pub unsafe fn connect_overlapped(&self, overlapped: *mut OVERLAPPED) -> io::Result<bool> {
         match crate::cvt(ConnectNamedPipe(self.0.raw(), overlapped)) {
             Ok(_) => Ok(true),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(true),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING as i32) => Ok(false),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_NO_DATA as i32) => Ok(true),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED.0 as i32) => Ok(true),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => Ok(false),
+            Err(ref e) if e.raw_os_error() == Some(ERROR_NO_DATA.0 as i32) => Ok(true),
             Err(e) => Err(e),
         }
     }
@@ -367,7 +365,7 @@ impl NamedPipe {
     pub unsafe fn result(&self, overlapped: *mut OVERLAPPED) -> io::Result<usize> {
         let mut transferred = 0;
         let r = GetOverlappedResult(self.0.raw(), overlapped, &mut transferred, false);
-        if r == 0 {
+        if !r.as_bool() {
             Err(io::Error::last_os_error())
         } else {
             Ok(transferred as usize)
@@ -440,18 +438,18 @@ impl<'a> Write for &'a NamedPipe {
 }
 
 impl AsRawHandle for NamedPipe {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
+        self.0.raw().0 as _
     }
 }
 impl FromRawHandle for NamedPipe {
-    unsafe fn from_raw_handle(handle: HANDLE) -> NamedPipe {
-        NamedPipe(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> NamedPipe {
+        NamedPipe(Handle::new(HANDLE(handle as _)))
     }
 }
 impl IntoRawHandle for NamedPipe {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> *mut std::ffi::c_void {
+        self.0.into_raw().0 as _
     }
 }
 
@@ -468,8 +466,8 @@ impl NamedPipeBuilder {
     pub fn new<A: AsRef<OsStr>>(addr: A) -> NamedPipeBuilder {
         NamedPipeBuilder {
             name: addr.as_ref().encode_wide().chain(Some(0)).collect(),
-            dwOpenMode: PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED,
-            dwPipeMode: PIPE_TYPE_BYTE,
+            dwOpenMode: PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE.0 | FILE_FLAG_OVERLAPPED.0,
+            dwPipeMode: PIPE_TYPE_BYTE.0,
             nMaxInstances: PIPE_UNLIMITED_INSTANCES,
             nOutBufferSize: 65536,
             nInBufferSize: 65536,
@@ -494,7 +492,7 @@ impl NamedPipeBuilder {
     /// If set to true, then creation will fail if there's already an instance
     /// elsewhere.
     pub fn first(&mut self, first: bool) -> &mut Self {
-        flag(&mut self.dwOpenMode, first, FILE_FLAG_FIRST_PIPE_INSTANCE);
+        flag(&mut self.dwOpenMode, first, FILE_FLAG_FIRST_PIPE_INSTANCE.0);
         self
     }
 
@@ -546,7 +544,7 @@ impl NamedPipeBuilder {
         attrs: *mut SECURITY_ATTRIBUTES,
     ) -> io::Result<NamedPipe> {
         let h = CreateNamedPipeW(
-            self.name.as_ptr(),
+            PWSTR(self.name.as_ptr() as _),
             self.dwOpenMode,
             self.dwPipeMode,
             self.nMaxInstances,

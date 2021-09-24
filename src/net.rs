@@ -19,9 +19,6 @@ use crate::bindings::{
     Windows::Win32::NetworkManagement::IpHelper::*,
 };
 
-// https://github.com/microsoft/win32metadata/issues/671
-pub const SIO_GET_EXTENSION_FUNCTION_POINTER: u32 = 33_5544_3206u32;
-
 /// A type to represent a buffer in which a socket address will be stored.
 ///
 /// This type is used with the `recv_from_overlapped` function on the
@@ -475,9 +472,9 @@ impl SocketAddrCRepr {
 fn socket_addr_to_ptrs(addr: &SocketAddr) -> (SocketAddrCRepr, i32) {
     match *addr {
         SocketAddr::V4(ref a) => {
-            let sin_addr = unsafe {
+            let sin_addr = 
                 IN_ADDR { S_un: IN_ADDR_0 { S_addr: u32::from_ne_bytes(a.ip().octets()) } }
-            };
+            ;
 
             let sockaddr_in = SOCKADDR_IN {
                 sin_family: AF_INET.0 as _,
@@ -510,10 +507,10 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
     if (len as usize) < mem::size_of::<i32>() {
         return None;
     }
-    match (*ptr).sa_family as ADDRESS_FAMILY {
+    match ADDRESS_FAMILY((*ptr).sa_family as _) {
         AF_INET if len as usize >= mem::size_of::<SOCKADDR_IN>() => {
             let b = &*(ptr as *const SOCKADDR_IN);
-            let ip = ntoh(*b.sin_addr.S_un.S_addr());
+            let ip = ntoh(b.sin_addr.S_un.S_addr);
             let ip = Ipv4Addr::new(
                 (ip >> 24) as u8,
                 (ip >> 16) as u8,
@@ -524,7 +521,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
         }
         AF_INET6 if len as usize >= mem::size_of::<SOCKADDR_IN6>() => {
             let b = &*(ptr as *const SOCKADDR_IN6);
-            let arr = b.sin6_addr.u.Byte();
+            let arr = &b.sin6_addr.u.Byte;
             let ip = Ipv6Addr::new(
                 ((arr[0] as u16) << 8) | (arr[1] as u16),
                 ((arr[2] as u16) << 8) | (arr[3] as u16),
@@ -539,7 +536,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
                 ip,
                 ntoh(b.sin6_port),
                 ntoh(b.sin6_flowinfo),
-                ntoh(*b.u.sin6_scope_id()),
+                ntoh(b.Anonymous.sin6_scope_id),
             );
             Some(SocketAddr::V6(addr))
         }
@@ -550,7 +547,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
 unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
     WSABUF {
         len: cmp::min(slice.len(), <u32>::max_value() as usize) as u32,
-        buf: slice.as_ptr() as *mut _,
+        buf: PSTR(slice.as_ptr() as *mut _),
     }
 }
 
@@ -558,7 +555,7 @@ unsafe fn result(socket: SOCKET, overlapped: *mut OVERLAPPED) -> io::Result<(usi
     let mut transferred = 0;
     let mut flags = 0;
     let r = WSAGetOverlappedResult(socket, overlapped, &mut transferred, false, &mut flags);
-    if r == 0 {
+    if !r.as_bool() {
         Err(io::Error::last_os_error())
     } else {
         Ok((transferred as usize, flags))
@@ -575,7 +572,7 @@ impl TcpStreamExt for TcpStream {
         let mut flags = 0;
         let mut bytes_read: u32 = 0;
         let r = WSARecv(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut bytes_read,
@@ -611,7 +608,7 @@ impl TcpStreamExt for TcpStream {
         //
         // [1]: https://github.com/carllerche/mio/pull/520#issuecomment-273983823
         let r = WSASend(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut bytes_written,
@@ -628,17 +625,17 @@ impl TcpStreamExt for TcpStream {
         buf: &[u8],
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        connect_overlapped(self.as_raw_socket() as SOCKET, addr, buf, overlapped)
+        connect_overlapped(SOCKET(self.as_raw_socket() as _), addr, buf, overlapped)
     }
 
     fn connect_complete(&self) -> io::Result<()> {
         const SO_UPDATE_CONNECT_CONTEXT: i32 = 0x7010;
         let result = unsafe {
             setsockopt(
-                self.as_raw_socket() as SOCKET,
-                SOL_SOCKET,
+                SOCKET(self.as_raw_socket() as _),
+                SOL_SOCKET as _,
                 SO_UPDATE_CONNECT_CONTEXT,
-                0 as *const _,
+                None,
                 0,
             )
         };
@@ -650,7 +647,7 @@ impl TcpStreamExt for TcpStream {
     }
 
     unsafe fn result(&self, overlapped: *mut OVERLAPPED) -> io::Result<(usize, u32)> {
-        result(self.as_raw_socket() as SOCKET, overlapped)
+        result(SOCKET(self.as_raw_socket() as _), overlapped)
     }
 }
 
@@ -695,7 +692,7 @@ unsafe fn connect_overlapped(
         &mut bytes_sent,
         overlapped,
     );
-    if r {
+    if r.as_bool() {
         Ok(Some(bytes_sent as usize))
     } else {
         last_err()
@@ -713,7 +710,7 @@ impl UdpSocketExt for UdpSocket {
         let mut flags = 0;
         let mut received_bytes: u32 = 0;
         let r = WSARecvFrom(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut received_bytes,
@@ -735,7 +732,7 @@ impl UdpSocketExt for UdpSocket {
         let mut flags = 0;
         let mut received_bytes: u32 = 0;
         let r = WSARecv(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut received_bytes,
@@ -756,7 +753,7 @@ impl UdpSocketExt for UdpSocket {
         let mut buf = slice2buf(buf);
         let mut sent_bytes = 0;
         let r = WSASendTo(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut sent_bytes,
@@ -777,7 +774,7 @@ impl UdpSocketExt for UdpSocket {
         let mut buf = slice2buf(buf);
         let mut sent_bytes = 0;
         let r = WSASend(
-            self.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
             &mut buf,
             1,
             &mut sent_bytes,
@@ -789,7 +786,7 @@ impl UdpSocketExt for UdpSocket {
     }
 
     unsafe fn result(&self, overlapped: *mut OVERLAPPED) -> io::Result<(usize, u32)> {
-        result(self.as_raw_socket() as SOCKET, overlapped)
+        result(SOCKET(self.as_raw_socket() as _), overlapped)
     }
 }
 
@@ -820,15 +817,15 @@ impl TcpListenerExt for TcpListener {
             *mut OVERLAPPED,
         ) -> BOOL;
 
-        let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
+        let ptr = ACCEPTEX.get(SOCKET(self.as_raw_socket() as _))?;
         assert!(ptr != 0);
         let accept_ex = mem::transmute::<_, AcceptEx>(ptr);
 
         let mut bytes = 0;
         let (a, b, c, d) = (*addrs).args();
         let r = accept_ex(
-            self.as_raw_socket() as SOCKET,
-            socket.as_raw_socket() as SOCKET,
+            SOCKET(self.as_raw_socket() as _),
+            SOCKET(socket.as_raw_socket() as _),
             a,
             b,
             c,
@@ -836,7 +833,7 @@ impl TcpListenerExt for TcpListener {
             &mut bytes,
             overlapped,
         );
-        let succeeded = if r {
+        let succeeded = if r.as_bool() {
             true
         } else {
             last_err()?;
@@ -850,10 +847,10 @@ impl TcpListenerExt for TcpListener {
         let me = self.as_raw_socket();
         let result = unsafe {
             setsockopt(
-                socket.as_raw_socket() as SOCKET,
-                SOL_SOCKET,
+                SOCKET(socket.as_raw_socket() as _),
+                SOL_SOCKET as _,
                 SO_UPDATE_ACCEPT_CONTEXT,
-                &me as *const _ as *const _,
+                PSTR(&me as *const _ as *mut _),
                 mem::size_of_val(&me) as i32,
             )
         };
@@ -865,7 +862,7 @@ impl TcpListenerExt for TcpListener {
     }
 
     unsafe fn result(&self, overlapped: *mut OVERLAPPED) -> io::Result<(usize, u32)> {
-        result(self.as_raw_socket() as SOCKET, overlapped)
+        result(SOCKET(self.as_raw_socket() as _), overlapped)
     }
 }
 
@@ -933,7 +930,7 @@ impl AcceptAddrsBuf {
             remote_len: 0,
             _data: self,
         };
-        let ptr = GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET)?;
+        let ptr = GETACCEPTEXSOCKADDRS.get(SOCKET(socket.as_raw_socket() as _))?;
         assert!(ptr != 0);
         unsafe {
             let get_sockaddrs = mem::transmute::<_, GetAcceptExSockaddrs>(ptr);
@@ -983,6 +980,10 @@ impl WsaExtension {
         }
         let mut ret = 0 as usize;
         let mut bytes = 0;
+
+        // https://github.com/microsoft/win32metadata/issues/671
+        const SIO_GET_EXTENSION_FUNCTION_POINTER: u32 = 33_5544_3206u32;
+
         let r = unsafe {
             WSAIoctl(
                 socket,

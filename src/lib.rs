@@ -35,7 +35,7 @@ use crate::bindings::{
 };
 
 fn cvt(i: BOOL) -> io::Result<BOOL> {
-    if i == 0 {
+    if !i.as_bool() {
         Err(io::Error::last_os_error())
     } else {
         Ok(i)

@@ -76,7 +76,9 @@ impl Overlapped {
 
     /// Reads the offset inside this overlapped structure.
     pub fn offset(&self) -> u64 {
+        unsafe {
         (self.0.Anonymous.Anonymous.Offset as u64) | ((self.0.Anonymous.Anonymous.OffsetHigh as u64) << 32)
+        }
     }
 
     /// Sets the `hEvent` field of this structure.
