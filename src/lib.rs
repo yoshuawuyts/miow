@@ -6,7 +6,6 @@
 #![doc(html_root_url = "https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/")]
 
 use std::cmp;
-use std::io;
 use std::time::Duration;
 
 #[cfg(test)]
@@ -29,17 +28,7 @@ pub mod pipe;
 
 pub use crate::overlapped::Overlapped;
 
-use crate::bindings::{
-    Windows::Win32::Foundation::*, Windows::Win32::System::WindowsProgramming::*,
-};
-
-fn cvt(i: BOOL) -> io::Result<BOOL> {
-    if !i.as_bool() {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(i)
-    }
-}
+use crate::bindings::Windows::Win32::System::WindowsProgramming::*;
 
 fn dur2ms(dur: Option<Duration>) -> u32 {
     let dur = match dur {

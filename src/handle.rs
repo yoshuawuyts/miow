@@ -33,7 +33,7 @@ impl Handle {
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
-        crate::cvt(unsafe {
+        unsafe {
             WriteFile(
                 self.0,
                 buf.as_ptr() as *const _,
@@ -41,14 +41,15 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        })?;
+            .ok()?;
+        }
         Ok(bytes as usize)
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut bytes = 0;
         let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
-        crate::cvt(unsafe {
+        unsafe {
             ReadFile(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
@@ -56,7 +57,8 @@ impl Handle {
                 &mut bytes,
                 0 as *mut _,
             )
-        })?;
+            .ok()?;
+        }
         Ok(bytes as usize)
     }
 
@@ -87,27 +89,26 @@ impl Handle {
         wait: bool,
     ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
-        let res = crate::cvt(ReadFile(
+        let res = ReadFile(
             self.0,
             buf.as_mut_ptr() as *mut _,
             len,
             ptr::null_mut(),
             overlapped,
-        ));
+        )
+        .ok();
         match res {
             Ok(_) => (),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => (),
-            Err(e) => return Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_IO_PENDING.0) => (),
+            Err(e) => return Err(e.into()),
         }
 
         let mut bytes = 0;
-        let res = crate::cvt(GetOverlappedResult(self.0, overlapped, &mut bytes, wait));
+        let res = GetOverlappedResult(self.0, overlapped, &mut bytes, wait).ok();
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE.0 as i32) && !wait => {
-                Ok(None)
-            }
-            Err(e) => Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_IO_INCOMPLETE.0) && !wait => Ok(None),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -138,27 +139,26 @@ impl Handle {
         wait: bool,
     ) -> io::Result<Option<usize>> {
         let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
-        let res = crate::cvt(WriteFile(
+        let res = WriteFile(
             self.0,
             buf.as_ptr() as *const _,
             len,
             ptr::null_mut(),
             overlapped,
-        ));
+        )
+        .ok();
         match res {
             Ok(_) => (),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => (),
-            Err(e) => return Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_IO_PENDING.0) => (),
+            Err(e) => return Err(e.into()),
         }
 
         let mut bytes = 0;
-        let res = crate::cvt(GetOverlappedResult(self.0, overlapped, &mut bytes, wait));
+        let res = GetOverlappedResult(self.0, overlapped, &mut bytes, wait).ok();
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE.0 as i32) && !wait => {
-                Ok(None)
-            }
-            Err(e) => Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_IO_INCOMPLETE.0) && !wait => Ok(None),
+            Err(e) => Err(e.into()),
         }
     }
 }

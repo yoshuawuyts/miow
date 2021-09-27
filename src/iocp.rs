@@ -111,7 +111,7 @@ impl CompletionPort {
         let mut token = 0;
         let mut overlapped = 0 as *mut _;
         let timeout = crate::dur2ms(timeout);
-        let ret = unsafe {
+        unsafe {
             GetQueuedCompletionStatus(
                 self.handle.raw(),
                 &mut bytes,
@@ -119,15 +119,14 @@ impl CompletionPort {
                 &mut overlapped,
                 timeout,
             )
-        };
-        crate::cvt(ret).map(|_| {
-            CompletionStatus(OVERLAPPED_ENTRY {
-                dwNumberOfBytesTransferred: bytes,
-                lpCompletionKey: token,
-                lpOverlapped: overlapped,
-                Internal: 0,
-            })
-        })
+            .ok()?;
+        }
+        Ok(CompletionStatus(OVERLAPPED_ENTRY {
+            dwNumberOfBytesTransferred: bytes,
+            lpCompletionKey: token,
+            lpOverlapped: overlapped,
+            Internal: 0,
+        }))
     }
 
     /// Dequeues a number of completion statuses from this I/O completion port.
@@ -151,7 +150,7 @@ impl CompletionPort {
         let mut removed = 0;
         let timeout = crate::dur2ms(timeout);
         let len = cmp::min(list.len(), <u32>::max_value() as usize) as u32;
-        let ret = unsafe {
+        unsafe {
             GetQueuedCompletionStatusEx(
                 self.handle.raw(),
                 list.as_ptr() as *mut _,
@@ -160,11 +159,9 @@ impl CompletionPort {
                 timeout,
                 false,
             )
-        };
-        match crate::cvt(ret) {
-            Ok(_) => Ok(&mut list[..removed as usize]),
-            Err(e) => Err(e),
+            .ok()?
         }
+        Ok(&mut list[..removed as usize])
     }
 
     /// Posts a new completion status onto this I/O completion port.
@@ -173,15 +170,16 @@ impl CompletionPort {
     /// port. Threads blocked in `get` or `get_many` will eventually receive
     /// this status.
     pub fn post(&self, status: CompletionStatus) -> io::Result<()> {
-        let ret = unsafe {
+        unsafe {
             PostQueuedCompletionStatus(
                 self.handle.raw(),
                 status.0.dwNumberOfBytesTransferred,
                 status.0.lpCompletionKey,
                 status.0.lpOverlapped,
             )
-        };
-        crate::cvt(ret).map(|_| ())
+            .ok()?;
+        }
+        Ok(())
     }
 }
 

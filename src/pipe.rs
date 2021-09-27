@@ -95,7 +95,9 @@ pub struct NamedPipeBuilder {
 pub fn anonymous(buffer_size: u32) -> io::Result<(AnonRead, AnonWrite)> {
     let mut read = Default::default();
     let mut write = Default::default();
-    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, std::ptr::null_mut(), buffer_size) })?;
+    unsafe {
+        CreatePipe(&mut read, &mut write, std::ptr::null_mut(), buffer_size).ok()?;
+    }
     Ok((AnonRead(Handle::new(read)), AnonWrite(Handle::new(write))))
 }
 
@@ -223,7 +225,10 @@ impl NamedPipe {
     fn _wait(addr: &OsStr, timeout: Option<Duration>) -> io::Result<()> {
         let addr = addr.encode_wide().chain(Some(0)).collect::<Vec<_>>();
         let timeout = crate::dur2ms(timeout);
-        crate::cvt(unsafe { WaitNamedPipeW(PWSTR(addr.as_ptr() as _), timeout.into()) }).map(|_| ())
+        unsafe {
+            WaitNamedPipeW(PWSTR(addr.as_ptr() as _), timeout.into()).ok()?;
+        }
+        Ok(())
     }
 
     /// Connects this named pipe to a client, blocking until one becomes
@@ -233,10 +238,10 @@ impl NamedPipe {
     /// client to connect. This can be called immediately after the pipe is
     /// created, or after it has been disconnected from a previous client.
     pub fn connect(&self) -> io::Result<()> {
-        match crate::cvt(unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _) }) {
+        match unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _).ok() } {
             Ok(_) => Ok(()),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED.0 as i32) => Ok(()),
-            Err(e) => Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_PIPE_CONNECTED.0) => Ok(()),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -260,18 +265,21 @@ impl NamedPipe {
     /// valid until the I/O operation is completed, typically via completion
     /// ports and waiting to receive the completion notification on the port.
     pub unsafe fn connect_overlapped(&self, overlapped: *mut OVERLAPPED) -> io::Result<bool> {
-        match crate::cvt(ConnectNamedPipe(self.0.raw(), overlapped)) {
+        match ConnectNamedPipe(self.0.raw(), overlapped).ok() {
             Ok(_) => Ok(true),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED.0 as i32) => Ok(true),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_IO_PENDING.0 as i32) => Ok(false),
-            Err(ref e) if e.raw_os_error() == Some(ERROR_NO_DATA.0 as i32) => Ok(true),
-            Err(e) => Err(e),
+            Err(ref e) if e.win32_error() == Some(ERROR_PIPE_CONNECTED.0) => Ok(true),
+            Err(ref e) if e.win32_error() == Some(ERROR_IO_PENDING.0) => Ok(false),
+            Err(ref e) if e.win32_error() == Some(ERROR_NO_DATA.0) => Ok(true),
+            Err(e) => Err(e.into()),
         }
     }
 
     /// Disconnects this named pipe from any connected client.
     pub fn disconnect(&self) -> io::Result<()> {
-        crate::cvt(unsafe { DisconnectNamedPipe(self.0.raw()) }).map(|_| ())
+        unsafe {
+            DisconnectNamedPipe(self.0.raw()).ok()?;
+        }
+        Ok(())
     }
 
     /// Issues an overlapped read operation to occur on this pipe.
@@ -430,7 +438,10 @@ impl<'a> Write for &'a NamedPipe {
         })
     }
     fn flush(&mut self) -> io::Result<()> {
-        crate::cvt(unsafe { FlushFileBuffers(self.0.raw()) }).map(|_| ())
+        unsafe {
+            FlushFileBuffers(self.0.raw()).ok()?;
+        }
+        Ok(())
     }
 }
 

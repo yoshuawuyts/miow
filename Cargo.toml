@@ -19,7 +19,7 @@ default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
 [dependencies]
-windows = { version = "0.21.0", default-features = false }
+windows = { path = "/git/windows-rs", default-features = false }
 
 [dev-dependencies]
 rand = "0.8.0"
