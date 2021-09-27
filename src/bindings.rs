@@ -7,6 +7,7 @@
     dead_code,
     clippy::all
 )]
+
 pub mod Windows {
     #[allow(
         unused_variables,
