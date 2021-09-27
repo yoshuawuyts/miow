@@ -58,3 +58,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: run cargo doc
       run: cargo doc --no-deps
+
+  bindings:
+    runs-on: windows-latest
+    name: check bindings
+    steps:
+    - uses: actions/checkout@v2
+    - name: run bindings
+      run: cargo run -p bindings
+    - name: diff results
+      shell: bash
+      run: git diff --exit-code || (echo '::error::Generated bindings are out-of-date. Please run `cargo run -p bindings`'; exit 1)
