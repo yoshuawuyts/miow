@@ -238,7 +238,7 @@ impl NamedPipe {
     /// client to connect. This can be called immediately after the pipe is
     /// created, or after it has been disconnected from a previous client.
     pub fn connect(&self) -> io::Result<()> {
-        match unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _).ok() } {
+        match unsafe { ConnectNamedPipe(self.0.raw(), std::ptr::null_mut()).ok() } {
             Ok(_) => Ok(()),
             Err(ref e) if e.win32_error() == Some(ERROR_PIPE_CONNECTED.0) => Ok(()),
             Err(e) => Err(e.into()),

@@ -109,7 +109,7 @@ impl CompletionPort {
     pub fn get(&self, timeout: Option<Duration>) -> io::Result<CompletionStatus> {
         let mut bytes = 0;
         let mut token = 0;
-        let mut overlapped = 0 as *mut _;
+        let mut overlapped = std::ptr::null_mut();
         let timeout = crate::dur2ms(timeout);
         unsafe {
             GetQueuedCompletionStatus(
@@ -236,7 +236,7 @@ impl CompletionStatus {
     /// This function is useful when creating a stack buffer or vector of
     /// completion statuses to be passed to the `get_many` function.
     pub fn zero() -> CompletionStatus {
-        CompletionStatus::new(0, 0, 0 as *mut _)
+        CompletionStatus::new(0, 0, std::ptr::null_mut())
     }
 
     /// Returns the number of bytes that were transferred for the I/O operation
@@ -323,6 +323,6 @@ mod tests {
         }
         assert_eq!(s[2].bytes_transferred(), 0);
         assert_eq!(s[2].token(), 0);
-        assert_eq!(s[2].overlapped(), 0 as *mut _);
+        assert_eq!(s[2].overlapped(), std::ptr::null_mut());
     }
 }

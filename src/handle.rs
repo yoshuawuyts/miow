@@ -39,7 +39,7 @@ impl Handle {
                 buf.as_ptr() as *const _,
                 len,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
             )
             .ok()?;
         }
@@ -55,7 +55,7 @@ impl Handle {
                 buf.as_mut_ptr() as *mut _,
                 len,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
             )
             .ok()?;
         }

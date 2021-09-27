@@ -519,7 +519,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
                 (ip >> 24) as u8,
                 (ip >> 16) as u8,
                 (ip >> 8) as u8,
-                (ip >> 0) as u8,
+                ip as u8,
             );
             Some(SocketAddr::V4(SocketAddrV4::new(ip, ntoh(b.sin_port))))
         }
@@ -898,9 +898,9 @@ impl AcceptAddrsBuf {
     /// succeeded to parse out the data that was written in.
     pub fn parse(&self, socket: &TcpListener) -> io::Result<AcceptAddrs> {
         let mut ret = AcceptAddrs {
-            local: 0 as *mut _,
+            local: std::ptr::null_mut(),
             local_len: 0,
-            remote: 0 as *mut _,
+            remote: std::ptr::null_mut(),
             remote_len: 0,
             _data: self,
         };
@@ -968,7 +968,7 @@ impl WsaExtension {
                 &mut ret as *mut _ as *mut _,
                 mem::size_of_val(&ret) as u32,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
                 None,
             )
         };
