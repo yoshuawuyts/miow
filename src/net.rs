@@ -965,7 +965,8 @@ impl AcceptAddrsBuf {
     }
 
     fn args(&self) -> (PVOID, DWORD, DWORD, DWORD) {
-        let remote_offset = unsafe { &(*(0 as *const AcceptAddrsBuf)).remote as *const _ as usize };
+        let buf: *const AcceptAddrsBuf = unsafe { mem::zeroed() };
+        let remote_offset = unsafe { &(*buf).remote as *const _ as usize };
         (
             self as *const _ as *mut _,
             0,
