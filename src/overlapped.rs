@@ -35,7 +35,7 @@ impl Overlapped {
     /// single thread waits on the event, it will be reset.
     pub fn initialize_with_autoreset_event() -> io::Result<Overlapped> {
         let event = unsafe { CreateEventW(ptr::null_mut(), 0i32, 0i32, ptr::null_mut()) };
-        if event == 0 {
+        if event.is_null() {
             return Err(io::Error::last_os_error());
         }
         let mut overlapped = Self::zero();
