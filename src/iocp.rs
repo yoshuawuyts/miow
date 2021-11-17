@@ -43,7 +43,7 @@ impl CompletionPort {
     /// allowed for threads associated with this port. Consult the Windows
     /// documentation for more information about this value.
     pub fn new(threads: u32) -> io::Result<CompletionPort> {
-        let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, std::ptr::null_mut(), 0, threads) };
+        let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0 as *mut _, 0, threads) };
         if ret.is_null() {
             Err(io::Error::last_os_error())
         } else {
@@ -63,7 +63,7 @@ impl CompletionPort {
     /// trait can be provided to this function, such as `std::fs::File` and
     /// friends.
     pub fn add_handle<T: AsRawHandle + ?Sized>(&self, token: usize, t: &T) -> io::Result<()> {
-        self._add(token, t.as_raw_handle() as _)
+        self._add(token, t.as_raw_handle())
     }
 
     /// Associates a new `SOCKET` to this I/O completion port.
@@ -183,22 +183,22 @@ impl CompletionPort {
 }
 
 impl AsRawHandle for CompletionPort {
-    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
-        self.handle.raw() as _
+    fn as_raw_handle(&self) -> HANDLE {
+        self.handle.raw()
     }
 }
 
 impl FromRawHandle for CompletionPort {
-    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> CompletionPort {
+    unsafe fn from_raw_handle(handle: HANDLE) -> CompletionPort {
         CompletionPort {
-            handle: Handle::new(handle as _),
+            handle: Handle::new(handle),
         }
     }
 }
 
 impl IntoRawHandle for CompletionPort {
-    fn into_raw_handle(self) -> *mut std::ffi::c_void {
-        self.handle.into_raw() as _
+    fn into_raw_handle(self) -> HANDLE {
+        self.handle.into_raw()
     }
 }
 

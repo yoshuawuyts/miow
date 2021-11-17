@@ -110,18 +110,18 @@ impl<'a> Read for &'a AnonRead {
 }
 
 impl AsRawHandle for AnonRead {
-    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
-        self.0.raw() as _
+    fn as_raw_handle(&self) -> HANDLE {
+        self.0.raw()
     }
 }
 impl FromRawHandle for AnonRead {
-    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> AnonRead {
-        AnonRead(Handle::new(handle as _))
+    unsafe fn from_raw_handle(handle: HANDLE) -> AnonRead {
+        AnonRead(Handle::new(handle))
     }
 }
 impl IntoRawHandle for AnonRead {
-    fn into_raw_handle(self) -> *mut std::ffi::c_void {
-        self.0.into_raw() as _
+    fn into_raw_handle(self) -> HANDLE {
+        self.0.into_raw()
     }
 }
 
@@ -143,18 +143,18 @@ impl<'a> Write for &'a AnonWrite {
 }
 
 impl AsRawHandle for AnonWrite {
-    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
-        self.0.raw() as _
+    fn as_raw_handle(&self) -> HANDLE {
+        self.0.raw()
     }
 }
 impl FromRawHandle for AnonWrite {
-    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> AnonWrite {
-        AnonWrite(Handle::new(handle as _))
+    unsafe fn from_raw_handle(handle: HANDLE) -> AnonWrite {
+        AnonWrite(Handle::new(handle))
     }
 }
 impl IntoRawHandle for AnonWrite {
-    fn into_raw_handle(self) -> *mut std::ffi::c_void {
-        self.0.into_raw() as _
+    fn into_raw_handle(self) -> HANDLE {
+        self.0.into_raw()
     }
 }
 
@@ -434,18 +434,18 @@ impl<'a> Write for &'a NamedPipe {
 }
 
 impl AsRawHandle for NamedPipe {
-    fn as_raw_handle(&self) -> *mut std::ffi::c_void {
-        self.0.raw() as _
+    fn as_raw_handle(&self) -> HANDLE {
+        self.0.raw()
     }
 }
 impl FromRawHandle for NamedPipe {
-    unsafe fn from_raw_handle(handle: *mut std::ffi::c_void) -> NamedPipe {
-        NamedPipe(Handle::new(handle as _))
+    unsafe fn from_raw_handle(handle: HANDLE) -> NamedPipe {
+        NamedPipe(Handle::new(handle))
     }
 }
 impl IntoRawHandle for NamedPipe {
-    fn into_raw_handle(self) -> *mut std::ffi::c_void {
-        self.0.into_raw() as _
+    fn into_raw_handle(self) -> HANDLE {
+        self.0.into_raw()
     }
 }
 
