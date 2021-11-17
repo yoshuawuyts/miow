@@ -9,8 +9,8 @@ use std::cmp;
 use std::io;
 use std::time::Duration;
 
-use winapi::shared::minwindef::*;
-use winapi::um::winbase::*;
+use windows_sys::Win32::Foundation::*;
+use windows_sys::Win32::System::WindowsProgramming::*;
 
 #[cfg(test)]
 macro_rules! t {
@@ -30,6 +30,8 @@ pub mod net;
 pub mod pipe;
 
 pub use crate::overlapped::Overlapped;
+pub(crate) const TRUE: BOOL = 1;
+pub(crate) const FALSE: BOOL = 0;
 
 fn cvt(i: BOOL) -> io::Result<BOOL> {
     if i == 0 {
