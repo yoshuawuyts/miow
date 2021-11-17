@@ -287,7 +287,7 @@ mod tests {
     fn timeout() {
         let c = CompletionPort::new(1).unwrap();
         let err = c.get(Some(Duration::from_millis(1))).unwrap_err();
-        assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as _));
+        assert_eq!(err.raw_os_error(), Some(WAIT_TIMEOUT as i32));
     }
 
     #[test]
