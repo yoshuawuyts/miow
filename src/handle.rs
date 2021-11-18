@@ -106,7 +106,12 @@ impl Handle {
         }
 
         let mut bytes = 0;
-        let res = crate::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
+        let res = crate::cvt(GetOverlappedResult(
+            self.0,
+            overlapped,
+            &mut bytes,
+            wait as BOOL,
+        ));
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && wait == FALSE => {
@@ -159,7 +164,12 @@ impl Handle {
         }
 
         let mut bytes = 0;
-        let res = crate::cvt({ GetOverlappedResult(self.0, overlapped, &mut bytes, wait as BOOL) });
+        let res = crate::cvt(GetOverlappedResult(
+            self.0,
+            overlapped,
+            &mut bytes,
+            wait as BOOL,
+        ));
         match res {
             Ok(_) => Ok(Some(bytes as usize)),
             Err(ref e) if e.raw_os_error() == Some(ERROR_IO_INCOMPLETE as i32) && wait == FALSE => {
