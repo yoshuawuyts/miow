@@ -1,7 +1,8 @@
 
-## [v0.3.8] - 2021-11-22
+## [v0.4.0] - 2021-11-29
 ### Changed
-- Replaced `winapi` with `windows-sys` - `CompletionStatus` now guarantees `#[repr(transparent)]`.
+- Replaced `winapi` with `windows-sys`.
+- `CompletionStatus` now guarantees `#[repr(transparent)]`.
 
 ### Internal
 - Added CI integration.
