@@ -110,18 +110,18 @@ impl<'a> Read for &'a AnonRead {
 }
 
 impl AsRawHandle for AnonRead {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> RawHandle {
+        self.0.raw() as _
     }
 }
 impl FromRawHandle for AnonRead {
-    unsafe fn from_raw_handle(handle: HANDLE) -> AnonRead {
-        AnonRead(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: RawHandle) -> AnonRead {
+        AnonRead(Handle::new(handle as _))
     }
 }
 impl IntoRawHandle for AnonRead {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> RawHandle {
+        self.0.into_raw() as _
     }
 }
 
@@ -143,18 +143,18 @@ impl<'a> Write for &'a AnonWrite {
 }
 
 impl AsRawHandle for AnonWrite {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> RawHandle {
+        self.0.raw() as _
     }
 }
 impl FromRawHandle for AnonWrite {
-    unsafe fn from_raw_handle(handle: HANDLE) -> AnonWrite {
-        AnonWrite(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: RawHandle) -> AnonWrite {
+        AnonWrite(Handle::new(handle as _))
     }
 }
 impl IntoRawHandle for AnonWrite {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> RawHandle {
+        self.0.into_raw() as _
     }
 }
 
@@ -434,18 +434,18 @@ impl<'a> Write for &'a NamedPipe {
 }
 
 impl AsRawHandle for NamedPipe {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.0.raw()
+    fn as_raw_handle(&self) -> RawHandle {
+        self.0.raw() as _
     }
 }
 impl FromRawHandle for NamedPipe {
-    unsafe fn from_raw_handle(handle: HANDLE) -> NamedPipe {
-        NamedPipe(Handle::new(handle))
+    unsafe fn from_raw_handle(handle: RawHandle) -> NamedPipe {
+        NamedPipe(Handle::new(handle as _))
     }
 }
 impl IntoRawHandle for NamedPipe {
-    fn into_raw_handle(self) -> HANDLE {
-        self.0.into_raw()
+    fn into_raw_handle(self) -> RawHandle {
+        self.0.into_raw() as _
     }
 }
 
