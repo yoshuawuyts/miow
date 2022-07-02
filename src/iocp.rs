@@ -43,8 +43,8 @@ impl CompletionPort {
     /// allowed for threads associated with this port. Consult the Windows
     /// documentation for more information about this value.
     pub fn new(threads: u32) -> io::Result<CompletionPort> {
-        let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0 as *mut _, 0, threads) };
-        if ret.is_null() {
+        let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, threads) };
+        if ret == 0 {
             Err(io::Error::last_os_error())
         } else {
             Ok(CompletionPort {
@@ -63,7 +63,7 @@ impl CompletionPort {
     /// trait can be provided to this function, such as `std::fs::File` and
     /// friends.
     pub fn add_handle<T: AsRawHandle + ?Sized>(&self, token: usize, t: &T) -> io::Result<()> {
-        self._add(token, t.as_raw_handle())
+        self._add(token, t.as_raw_handle() as HANDLE)
     }
 
     /// Associates a new `SOCKET` to this I/O completion port.
@@ -82,7 +82,7 @@ impl CompletionPort {
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
         assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
         let ret = unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as usize, 0) };
-        if ret.is_null() {
+        if ret == 0 {
             Err(io::Error::last_os_error())
         } else {
             debug_assert_eq!(ret, self.handle.raw());
@@ -183,22 +183,22 @@ impl CompletionPort {
 }
 
 impl AsRawHandle for CompletionPort {
-    fn as_raw_handle(&self) -> HANDLE {
-        self.handle.raw()
+    fn as_raw_handle(&self) -> RawHandle {
+        self.handle.raw() as RawHandle
     }
 }
 
 impl FromRawHandle for CompletionPort {
-    unsafe fn from_raw_handle(handle: HANDLE) -> CompletionPort {
+    unsafe fn from_raw_handle(handle: RawHandle) -> CompletionPort {
         CompletionPort {
-            handle: Handle::new(handle),
+            handle: Handle::new(handle as HANDLE),
         }
     }
 }
 
 impl IntoRawHandle for CompletionPort {
-    fn into_raw_handle(self) -> HANDLE {
-        self.handle.into_raw()
+    fn into_raw_handle(self) -> RawHandle {
+        self.handle.into_raw() as RawHandle
     }
 }
 
