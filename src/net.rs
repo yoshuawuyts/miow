@@ -671,6 +671,7 @@ unsafe fn connect_overlapped(
     };
 
     let ptr = CONNECTEX.get(socket)?;
+    assert!(ptr != 0);
     let connect_ex = mem::transmute::<_, LPFN_CONNECTEX>(ptr).unwrap();
 
     let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
@@ -800,6 +801,7 @@ impl TcpListenerExt for TcpListener {
         };
 
         let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
+        assert!(ptr != 0);
         let accept_ex = mem::transmute::<_, LPFN_ACCEPTEX>(ptr).unwrap();
 
         let mut bytes = 0;
@@ -902,6 +904,7 @@ impl AcceptAddrsBuf {
             _data: self,
         };
         let ptr = GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET)?;
+        assert!(ptr != 0);
         unsafe {
             let get_sockaddrs = mem::transmute::<_, LPFN_GETACCEPTEXSOCKADDRS>(ptr).unwrap();
             let (a, b, c, d) = self.args();
