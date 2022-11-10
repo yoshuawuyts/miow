@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/tc5lsxokjk86949l?svg=true)](https://ci.appveyor.com/project/alexcrichton/miow)
 
-[Documentation](https://docs.rs/miow/0.3/x86_64-pc-windows-msvc/miow/)
+[Documentation](https://docs.rs/miow)
 
 A zero overhead Windows I/O library focusing on IOCP and other async I/O
 features.
@@ -10,7 +10,7 @@ features.
 ```toml
 # Cargo.toml
 [dependencies]
-miow = "0.3.6"
+miow = "0.4"
 ```
 
 # License
@@ -18,9 +18,9 @@ miow = "0.3.6"
 This project is licensed under either of
 
  * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
+   https://www.apache.org/licenses/LICENSE-2.0)
  * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-   http://opensource.org/licenses/MIT)
+   https://opensource.org/licenses/MIT)
 
 at your option.
 
