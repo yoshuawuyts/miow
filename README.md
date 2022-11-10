@@ -10,7 +10,7 @@ features.
 ```toml
 # Cargo.toml
 [dependencies]
-miow = "0.4"
+miow = "0.5"
 ```
 
 # License

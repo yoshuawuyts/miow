@@ -1,3 +1,6 @@
+## [v0.5.0] - 2022-11-10
+### Changed
+- Upgrade `windows-sys` from 0.28 to 0.42.
 
 ## [v0.4.0] - 2021-11-29
 ### Changed
