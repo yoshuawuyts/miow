@@ -3,9 +3,9 @@ use std::io;
 use std::mem;
 use std::ptr;
 
-use windows_sys::Win32::Foundation::*;
-use windows_sys::Win32::System::Threading::*;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::Win32::Foundation::HANDLE;
+use windows_sys::Win32::System::Threading::CreateEventW;
+use windows_sys::Win32::System::IO::OVERLAPPED;
 
 /// A wrapper around `OVERLAPPED` to provide "rustic" accessors and
 /// initializers.
