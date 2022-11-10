@@ -13,7 +13,6 @@ use std::os::windows::prelude::*;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use windows_sys::core::*;
-use windows_sys::Win32::NetworkManagement::IpHelper::*;
 use windows_sys::Win32::Networking::WinSock::*;
 use windows_sys::Win32::System::IO::*;
 
@@ -673,7 +672,7 @@ unsafe fn connect_overlapped(
 
     let ptr = CONNECTEX.get(socket)?;
     assert!(ptr != 0);
-    let connect_ex = mem::transmute::<_, LPFN_CONNECTEX>(ptr);
+    let connect_ex = mem::transmute::<_, LPFN_CONNECTEX>(ptr).unwrap();
 
     let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
     let mut bytes_sent: u32 = 0;
@@ -803,7 +802,7 @@ impl TcpListenerExt for TcpListener {
 
         let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
-        let accept_ex = mem::transmute::<_, LPFN_ACCEPTEX>(ptr);
+        let accept_ex = mem::transmute::<_, LPFN_ACCEPTEX>(ptr).unwrap();
 
         let mut bytes = 0;
         let (a, b, c, d) = (*addrs).args();
@@ -907,7 +906,7 @@ impl AcceptAddrsBuf {
         let ptr = GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
         unsafe {
-            let get_sockaddrs = mem::transmute::<_, LPFN_GETACCEPTEXSOCKADDRS>(ptr);
+            let get_sockaddrs = mem::transmute::<_, LPFN_GETACCEPTEXSOCKADDRS>(ptr).unwrap();
             let (a, b, c, d) = self.args();
             get_sockaddrs(
                 a,
