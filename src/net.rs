@@ -3,18 +3,23 @@
 //! This module contains a number of extension traits for the types in
 //! `std::net` for Windows-specific functionality.
 
-use crate::*;
+use crate::{FALSE, TRUE};
 use std::cmp;
 use std::io;
 use std::mem;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddrV4, SocketAddrV6};
 use std::net::{SocketAddr, TcpListener, TcpStream, UdpSocket};
-use std::os::windows::prelude::*;
+use std::os::windows::io::AsRawSocket;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use windows_sys::core::*;
-use windows_sys::Win32::Networking::WinSock::*;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::core::GUID;
+use windows_sys::Win32::Networking::WinSock::{
+    setsockopt, WSAGetLastError, WSAGetOverlappedResult, WSAIoctl, WSARecv, WSARecvFrom, WSASend,
+    WSASendTo, AF_INET, AF_INET6, IN6_ADDR, IN6_ADDR_0, IN_ADDR, IN_ADDR_0, LPFN_ACCEPTEX,
+    LPFN_CONNECTEX, LPFN_GETACCEPTEXSOCKADDRS, SOCKADDR, SOCKADDR_IN, SOCKADDR_IN6, SOCKADDR_IN6_0,
+    SOCKADDR_STORAGE, SOCKET, SOCKET_ERROR, SOL_SOCKET, WSABUF, WSA_IO_PENDING,
+};
+use windows_sys::Win32::System::IO::OVERLAPPED;
 
 /// A type to represent a buffer in which a socket address will be stored.
 ///

@@ -1,16 +1,20 @@
 //! Bindings to IOCP, I/O Completion Ports
 
-use crate::*;
+use crate::FALSE;
 use std::cmp;
 use std::fmt;
 use std::io;
 use std::mem;
-use std::os::windows::io::*;
+use std::os::windows::io::{AsRawHandle, AsRawSocket, FromRawHandle, IntoRawHandle, RawHandle};
 use std::time::Duration;
 
 use crate::handle::Handle;
 use crate::Overlapped;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::Win32::Foundation::{HANDLE, INVALID_HANDLE_VALUE};
+use windows_sys::Win32::System::IO::{
+    CreateIoCompletionPort, GetQueuedCompletionStatus, GetQueuedCompletionStatusEx,
+    PostQueuedCompletionStatus, OVERLAPPED, OVERLAPPED_ENTRY,
+};
 
 /// A handle to an Windows I/O Completion Port.
 #[derive(Debug)]

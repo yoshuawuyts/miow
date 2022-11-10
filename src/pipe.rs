@@ -43,23 +43,33 @@
 //!
 //! - [win32 pipe docs](https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/ipc/pipes.md)
 
-use crate::*;
+use crate::FALSE;
 use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fs::{File, OpenOptions};
 use std::io;
-use std::io::prelude::*;
-use std::os::windows::ffi::*;
-use std::os::windows::io::*;
+use std::io::{Read, Write};
+use std::os::windows::ffi::OsStrExt;
+use std::os::windows::io::{AsRawHandle, FromRawHandle, IntoRawHandle, RawHandle};
 use std::time::Duration;
 
 use crate::handle::Handle;
 use crate::overlapped::Overlapped;
 
-use windows_sys::Win32::Security::*;
-use windows_sys::Win32::Storage::FileSystem::*;
-use windows_sys::Win32::System::Pipes::*;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::Win32::Foundation::{
+    ERROR_IO_PENDING, ERROR_NO_DATA, ERROR_PIPE_BUSY, ERROR_PIPE_CONNECTED, HANDLE,
+    INVALID_HANDLE_VALUE,
+};
+use windows_sys::Win32::Security::SECURITY_ATTRIBUTES;
+use windows_sys::Win32::Storage::FileSystem::{
+    FlushFileBuffers, FILE_FLAG_FIRST_PIPE_INSTANCE, FILE_FLAG_OVERLAPPED, PIPE_ACCESS_DUPLEX,
+    PIPE_ACCESS_INBOUND, PIPE_ACCESS_OUTBOUND,
+};
+use windows_sys::Win32::System::Pipes::{
+    ConnectNamedPipe, CreateNamedPipeW, CreatePipe, DisconnectNamedPipe, WaitNamedPipeW,
+    PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE, PIPE_UNLIMITED_INSTANCES,
+};
+use windows_sys::Win32::System::IO::{GetOverlappedResult, OVERLAPPED};
 
 /// Readable half of an anonymous pipe.
 #[derive(Debug)]

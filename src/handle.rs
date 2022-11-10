@@ -1,10 +1,11 @@
-use crate::*;
+use crate::{BOOL, FALSE, TRUE};
 use std::cmp;
 use std::io;
 use std::ptr;
 
-use windows_sys::Win32::Storage::FileSystem::*;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::Win32::Foundation::{CloseHandle, ERROR_IO_INCOMPLETE, ERROR_IO_PENDING, HANDLE};
+use windows_sys::Win32::Storage::FileSystem::{ReadFile, WriteFile};
+use windows_sys::Win32::System::IO::{GetOverlappedResult, OVERLAPPED};
 
 #[derive(Debug)]
 pub struct Handle(HANDLE);
