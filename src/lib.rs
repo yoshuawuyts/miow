@@ -10,7 +10,7 @@ use std::io;
 use std::time::Duration;
 
 use windows_sys::Win32::Foundation::BOOL;
-use windows_sys::Win32::System::WindowsProgramming::INFINITE;
+use windows_sys::Win32::System::Threading::INFINITE;
 
 #[cfg(test)]
 macro_rules! t {
