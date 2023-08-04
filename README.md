@@ -7,11 +7,6 @@
 A zero overhead Windows I/O library focusing on IOCP and other async I/O
 features.
 
-```toml
-# Cargo.toml
-[dependencies]
-miow = "0.5"
-```
 
 # License
 
