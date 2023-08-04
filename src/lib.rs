@@ -1,5 +1,4 @@
-//! A zero overhead Windows I/O library
-
+#![doc = include_str!("../README.md")]
 #![cfg(windows)]
 #![deny(missing_docs)]
 #![allow(bad_style)]
