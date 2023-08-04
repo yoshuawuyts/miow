@@ -18,6 +18,9 @@ abstractions.
 default-target = "x86_64-pc-windows-msvc"
 targets = ["aarch64-pc-windows-msvc", "i686-pc-windows-msvc", "x86_64-pc-windows-msvc"]
 
+[badges]
+maintenance = { status = "as-is" }
+
 [dependencies.windows-sys]
 version = "0.48.0"
 features = [

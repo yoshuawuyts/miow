@@ -7,6 +7,7 @@
 A zero overhead Windows I/O library focusing on IOCP and other async I/O
 features.
 
+This crate is basically unmaintained. Do not expect new features or new releases.
 
 # License
 
