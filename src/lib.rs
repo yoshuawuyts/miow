@@ -8,7 +8,7 @@ use std::cmp;
 use std::io;
 use std::time::Duration;
 
-use windows_sys::Win32::Foundation::BOOL;
+use windows_sys::core::BOOL;
 use windows_sys::Win32::System::Threading::INFINITE;
 
 #[cfg(test)]
