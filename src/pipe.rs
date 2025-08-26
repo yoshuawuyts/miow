@@ -104,7 +104,7 @@ pub struct NamedPipeBuilder {
 pub fn anonymous(buffer_size: u32) -> io::Result<(AnonRead, AnonWrite)> {
     let mut read = 0 as HANDLE;
     let mut write = 0 as HANDLE;
-    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, 0 as *mut _, buffer_size) })?;
+    crate::cvt(unsafe { CreatePipe(&mut read, &mut write, std::ptr::null_mut(), buffer_size) })?;
     Ok((AnonRead(Handle::new(read)), AnonWrite(Handle::new(write))))
 }
 
@@ -113,7 +113,7 @@ impl Read for AnonRead {
         self.0.read(buf)
     }
 }
-impl<'a> Read for &'a AnonRead {
+impl Read for &AnonRead {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.0.read(buf)
     }
@@ -143,7 +143,7 @@ impl Write for AnonWrite {
         Ok(())
     }
 }
-impl<'a> Write for &'a AnonWrite {
+impl Write for &AnonWrite {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.0.write(buf)
     }
@@ -242,7 +242,7 @@ impl NamedPipe {
     /// client to connect. This can be called immediately after the pipe is
     /// created, or after it has been disconnected from a previous client.
     pub fn connect(&self) -> io::Result<()> {
-        match crate::cvt(unsafe { ConnectNamedPipe(self.0.raw(), 0 as *mut _) }) {
+        match crate::cvt(unsafe { ConnectNamedPipe(self.0.raw(), std::ptr::null_mut()) }) {
             Ok(_) => Ok(()),
             Err(ref e) if e.raw_os_error() == Some(ERROR_PIPE_CONNECTED as i32) => Ok(()),
             Err(e) => Err(e),
@@ -258,7 +258,7 @@ impl NamedPipe {
     /// the overlapped operation is enqueued and pending, then `Ok(false)` is
     /// returned. Otherwise an error is returned indicating what went wrong.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the
     /// `overlapped` pointer is valid until the end of the I/O operation. The
@@ -299,7 +299,7 @@ impl NamedPipe {
     /// mechanism must be used to learn how many bytes were transferred (such as
     /// looking at the filed in the IOCP status message).
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers to be valid until the end of the I/O operation.
@@ -333,7 +333,7 @@ impl NamedPipe {
     /// mechanism must be used to learn how many bytes were transferred (such as
     /// looking at the filed in the IOCP status message).
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers to be valid until the end of the I/O operation.
@@ -359,7 +359,7 @@ impl NamedPipe {
     /// successful number of bytes transferred during the operation or an error
     /// if one occurred.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
@@ -380,7 +380,7 @@ impl NamedPipe {
 }
 
 thread_local! {
-    static NAMED_PIPE_OVERLAPPED: RefCell<Option<Overlapped>> = RefCell::new(None);
+    static NAMED_PIPE_OVERLAPPED: RefCell<Option<Overlapped>> = const { RefCell::new(None) };
 }
 
 /// Call a function with a threadlocal `Overlapped`.  The function `f` should be
@@ -391,7 +391,7 @@ where
 {
     NAMED_PIPE_OVERLAPPED.with(|overlapped| {
         let mut mborrow = overlapped.borrow_mut();
-        if let None = *mborrow {
+        if mborrow.is_none() {
             let op = Overlapped::initialize_with_autoreset_event()?;
             *mborrow = Some(op);
         }
@@ -403,17 +403,15 @@ impl Read for NamedPipe {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         with_threadlocal_overlapped(|overlapped| unsafe {
-            self.0
-                .read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+            self.0.read_overlapped_wait(buf, overlapped.raw())
         })
     }
 }
-impl<'a> Read for &'a NamedPipe {
+impl Read for &NamedPipe {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         with_threadlocal_overlapped(|overlapped| unsafe {
-            self.0
-                .read_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+            self.0.read_overlapped_wait(buf, overlapped.raw())
         })
     }
 }
@@ -422,20 +420,18 @@ impl Write for NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         with_threadlocal_overlapped(|overlapped| unsafe {
-            self.0
-                .write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+            self.0.write_overlapped_wait(buf, overlapped.raw())
         })
     }
     fn flush(&mut self) -> io::Result<()> {
         <&NamedPipe as Write>::flush(&mut &*self)
     }
 }
-impl<'a> Write for &'a NamedPipe {
+impl Write for &NamedPipe {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // This is necessary because the pipe is opened with `FILE_FLAG_OVERLAPPED`.
         with_threadlocal_overlapped(|overlapped| unsafe {
-            self.0
-                .write_overlapped_wait(buf, overlapped.raw() as *mut OVERLAPPED)
+            self.0.write_overlapped_wait(buf, overlapped.raw())
         })
     }
     fn flush(&mut self) -> io::Result<()> {
@@ -520,13 +516,13 @@ impl NamedPipeBuilder {
 
     /// Specifies the number of bytes to reserver for the output buffer
     pub fn out_buffer_size(&mut self, buffer: u32) -> &mut Self {
-        self.nOutBufferSize = buffer as u32;
+        self.nOutBufferSize = buffer;
         self
     }
 
     /// Specifies the number of bytes to reserver for the input buffer
     pub fn in_buffer_size(&mut self, buffer: u32) -> &mut Self {
-        self.nInBufferSize = buffer as u32;
+        self.nInBufferSize = buffer;
         self
     }
 
@@ -538,13 +534,17 @@ impl NamedPipeBuilder {
         unsafe { self.with_security_attributes(::std::ptr::null_mut()) }
     }
 
-    /// Using the options in the builder and the provided security attributes, attempt to create a
-    /// new named pipe. This function has to be called with a valid pointer to a
-    /// `SECURITY_ATTRIBUTES` struct that will stay valid for the lifetime of this function or a
-    /// null pointer.
+    /// Using the options in the builder and the provided security attributes,
+    /// attempt to create a new named pipe.
     ///
     /// This function will call the `CreateNamedPipe` function and return the
     /// result.
+    ///
+    /// # Safety
+    ///
+    /// This function has to be called with a valid pointer to a
+    /// `SECURITY_ATTRIBUTES` struct that will stay valid for the lifetime of
+    /// this function or a null pointer.
     pub unsafe fn with_security_attributes(
         &mut self,
         attrs: *mut SECURITY_ATTRIBUTES,
@@ -588,7 +588,7 @@ mod tests {
             .take(30)
             .map(char::from)
             .collect::<String>();
-        format!(r"\\.\pipe\{}", name)
+        format!(r"\\.\pipe\{name}")
     }
 
     #[test]
@@ -742,7 +742,7 @@ mod tests {
         let a = t!(NamedPipe::new(&name));
 
         let t = thread::spawn(move || {
-            let mut f = t!(File::create(name));
+            let mut f = t!(super::connect(name));
             t!(f.write_all(&[1, 2, 3]));
         });
 

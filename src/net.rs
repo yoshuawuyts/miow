@@ -81,7 +81,7 @@ pub trait TcpStreamExt {
     /// The number of bytes read will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers are valid until the end of the I/O operation. The
@@ -114,7 +114,7 @@ pub trait TcpStreamExt {
     /// The number of bytes written will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers are valid until the end of the I/O operation. The
@@ -151,7 +151,7 @@ pub trait TcpStreamExt {
     /// Note that to succeed this requires that the underlying socket has
     /// previously been bound via a call to `bind` to a local address.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the
     /// `overlapped` and `buf` pointers to be  valid until the end of the I/O
@@ -185,7 +185,7 @@ pub trait TcpStreamExt {
     /// if one occurred, along with the results of the `lpFlags` parameter of
     /// the relevant operation, if applicable.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
@@ -216,7 +216,7 @@ pub trait UdpSocketExt {
     /// The number of bytes read will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf`,
     /// `addr`, and `overlapped` pointers are valid until the end of the I/O
@@ -251,7 +251,7 @@ pub trait UdpSocketExt {
     /// The number of bytes read will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf`,
     /// and `overlapped` pointers are valid until the end of the I/O
@@ -284,7 +284,7 @@ pub trait UdpSocketExt {
     /// The number of bytes written will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers are valid until the end of the I/O operation. The
@@ -318,7 +318,7 @@ pub trait UdpSocketExt {
     /// The number of bytes written will be returned as part of the completion
     /// notification when the I/O finishes.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the `buf` and
     /// `overlapped` pointers are valid until the end of the I/O operation. The
@@ -344,7 +344,7 @@ pub trait UdpSocketExt {
     /// if one occurred, along with the results of the `lpFlags` parameter of
     /// the relevant operation, if applicable.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
@@ -374,7 +374,7 @@ pub trait TcpListenerExt {
     /// returned. Otherwise, the error associated with the operation is
     /// returned and no overlapped operation is enqueued.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe because the kernel requires that the
     /// `addrs` and `overlapped` pointers are valid until the end of the I/O
@@ -408,7 +408,7 @@ pub trait TcpListenerExt {
     /// if one occurred, along with the results of the `lpFlags` parameter of
     /// the relevant operation, if applicable.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function is unsafe as `overlapped` must have previously been used
     /// to execute an operation for this handle, and it must also be a valid
@@ -423,12 +423,10 @@ pub trait TcpListenerExt {
 #[doc(hidden)]
 trait NetInt {
     fn from_be(i: Self) -> Self;
-    fn to_be(&self) -> Self;
 }
 macro_rules! doit {
     ($($t:ident)*) => ($(impl NetInt for $t {
         fn from_be(i: Self) -> Self { <$t>::from_be(i) }
-        fn to_be(&self) -> Self { <$t>::to_be(*self) }
     })*)
 }
 doit! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
@@ -440,7 +438,7 @@ fn ntoh<I: NetInt>(i: I) -> I {
 
 fn last_err() -> io::Result<Option<usize>> {
     let err = unsafe { WSAGetLastError() };
-    if err == WSA_IO_PENDING as i32 {
+    if err == WSA_IO_PENDING {
         Ok(None)
     } else {
         Err(io::Error::from_raw_os_error(err))
@@ -554,7 +552,7 @@ unsafe fn ptrs_to_socket_addr(ptr: *const SOCKADDR, len: i32) -> Option<SocketAd
 
 unsafe fn slice2buf(slice: &[u8]) -> WSABUF {
     WSABUF {
-        len: cmp::min(slice.len(), <u32>::max_value() as usize) as u32,
+        len: cmp::min(slice.len(), u32::MAX as usize) as u32,
         buf: slice.as_ptr() as *mut _,
     }
 }
@@ -576,12 +574,12 @@ impl TcpStreamExt for TcpStream {
         buf: &mut [u8],
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut flags = 0;
         let mut bytes_read: u32 = 0;
         let r = WSARecv(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut bytes_read,
             &mut flags,
@@ -596,7 +594,7 @@ impl TcpStreamExt for TcpStream {
         buf: &[u8],
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut bytes_written = 0;
 
         // Note here that we capture the number of bytes written. The
@@ -617,7 +615,7 @@ impl TcpStreamExt for TcpStream {
         // [1]: https://github.com/carllerche/mio/pull/520#issuecomment-273983823
         let r = WSASend(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut bytes_written,
             0,
@@ -643,7 +641,7 @@ impl TcpStreamExt for TcpStream {
                 self.as_raw_socket() as SOCKET,
                 SOL_SOCKET as _,
                 SO_UPDATE_CONNECT_CONTEXT,
-                0 as *mut _,
+                std::ptr::null_mut(),
                 0,
             )
         };
@@ -677,7 +675,7 @@ unsafe fn connect_overlapped(
 
     let ptr = CONNECTEX.get(socket)?;
     assert!(ptr != 0);
-    let connect_ex = mem::transmute::<_, LPFN_CONNECTEX>(ptr).unwrap();
+    let connect_ex = mem::transmute::<usize, LPFN_CONNECTEX>(ptr).unwrap();
 
     let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
     let mut bytes_sent: u32 = 0;
@@ -704,12 +702,12 @@ impl UdpSocketExt for UdpSocket {
         addr: *mut SocketAddrBuf,
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut flags = 0;
         let mut received_bytes: u32 = 0;
         let r = WSARecvFrom(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut received_bytes,
             &mut flags,
@@ -726,12 +724,12 @@ impl UdpSocketExt for UdpSocket {
         buf: &mut [u8],
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut flags = 0;
         let mut received_bytes: u32 = 0;
         let r = WSARecv(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut received_bytes,
             &mut flags,
@@ -748,11 +746,11 @@ impl UdpSocketExt for UdpSocket {
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
         let (addr_buf, addr_len) = socket_addr_to_ptrs(addr);
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut sent_bytes = 0;
         let r = WSASendTo(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut sent_bytes,
             0,
@@ -769,11 +767,11 @@ impl UdpSocketExt for UdpSocket {
         buf: &[u8],
         overlapped: *mut OVERLAPPED,
     ) -> io::Result<Option<usize>> {
-        let mut buf = slice2buf(buf);
+        let buf = slice2buf(buf);
         let mut sent_bytes = 0;
         let r = WSASend(
             self.as_raw_socket() as SOCKET,
-            &mut buf,
+            &buf,
             1,
             &mut sent_bytes,
             0,
@@ -807,7 +805,7 @@ impl TcpListenerExt for TcpListener {
 
         let ptr = ACCEPTEX.get(self.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
-        let accept_ex = mem::transmute::<_, LPFN_ACCEPTEX>(ptr).unwrap();
+        let accept_ex = mem::transmute::<usize, LPFN_ACCEPTEX>(ptr).unwrap();
 
         let mut bytes = 0;
         let (a, b, c, d) = (*addrs).args();
@@ -854,6 +852,12 @@ impl TcpListenerExt for TcpListener {
     }
 }
 
+impl Default for SocketAddrBuf {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SocketAddrBuf {
     /// Creates a new blank socket address buffer.
     ///
@@ -888,6 +892,12 @@ static GETACCEPTEXSOCKADDRS: WsaExtension = WsaExtension {
     val: AtomicUsize::new(0),
 };
 
+impl Default for AcceptAddrsBuf {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AcceptAddrsBuf {
     /// Creates a new blank buffer ready to be passed to a call to
     /// `accept_overlapped`.
@@ -900,18 +910,18 @@ impl AcceptAddrsBuf {
     ///
     /// This function can be called after a call to `accept_overlapped` has
     /// succeeded to parse out the data that was written in.
-    pub fn parse(&self, socket: &TcpListener) -> io::Result<AcceptAddrs> {
+    pub fn parse(&self, socket: &TcpListener) -> io::Result<AcceptAddrs<'_>> {
         let mut ret = AcceptAddrs {
-            local: 0 as *mut _,
+            local: std::ptr::null_mut(),
             local_len: 0,
-            remote: 0 as *mut _,
+            remote: std::ptr::null_mut(),
             remote_len: 0,
             _data: self,
         };
         let ptr = GETACCEPTEXSOCKADDRS.get(socket.as_raw_socket() as SOCKET)?;
         assert!(ptr != 0);
         unsafe {
-            let get_sockaddrs = mem::transmute::<_, LPFN_GETACCEPTEXSOCKADDRS>(ptr).unwrap();
+            let get_sockaddrs = mem::transmute::<usize, LPFN_GETACCEPTEXSOCKADDRS>(ptr).unwrap();
             let (a, b, c, d) = self.args();
             get_sockaddrs(
                 a,
@@ -929,7 +939,7 @@ impl AcceptAddrsBuf {
 
     #[allow(deref_nullptr)]
     fn args(&self) -> (*mut std::ffi::c_void, u32, u32, u32) {
-        let remote_offset = unsafe { &(*(0 as *const AcceptAddrsBuf)).remote as *const _ as usize };
+        let remote_offset = mem::offset_of!(AcceptAddrsBuf, remote);
         (
             self as *const _ as *mut _,
             0,
@@ -957,7 +967,7 @@ impl WsaExtension {
         if prev != 0 && !cfg!(debug_assertions) {
             return Ok(prev);
         }
-        let mut ret = 0 as usize;
+        let mut ret = 0_usize;
         let mut bytes = 0;
 
         // https://github.com/microsoft/win32metadata/issues/671
@@ -972,7 +982,7 @@ impl WsaExtension {
                 &mut ret as *mut _ as *mut _,
                 mem::size_of_val(&ret) as u32,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
                 None,
             )
         };

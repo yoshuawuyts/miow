@@ -32,14 +32,14 @@ impl Handle {
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut bytes = 0;
-        let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
+        let len = cmp::min(buf.len(), u32::MAX as usize) as u32;
         crate::cvt(unsafe {
             WriteFile(
                 self.0,
                 buf.as_ptr() as *const _,
                 len,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
             )
         })?;
         Ok(bytes as usize)
@@ -47,14 +47,14 @@ impl Handle {
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut bytes = 0;
-        let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
+        let len = cmp::min(buf.len(), u32::MAX as usize) as u32;
         crate::cvt(unsafe {
             ReadFile(
                 self.0,
                 buf.as_mut_ptr() as *mut _,
                 len,
                 &mut bytes,
-                0 as *mut _,
+                std::ptr::null_mut(),
             )
         })?;
         Ok(bytes as usize)
@@ -86,7 +86,7 @@ impl Handle {
         overlapped: *mut OVERLAPPED,
         wait: BOOL,
     ) -> io::Result<Option<usize>> {
-        let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
+        let len = cmp::min(buf.len(), u32::MAX as usize) as u32;
         let res = crate::cvt({
             ReadFile(
                 self.0,
@@ -139,7 +139,7 @@ impl Handle {
         overlapped: *mut OVERLAPPED,
         wait: BOOL,
     ) -> io::Result<Option<usize>> {
-        let len = cmp::min(buf.len(), <u32>::max_value() as usize) as u32;
+        let len = cmp::min(buf.len(), u32::MAX as usize) as u32;
         let res = crate::cvt({
             WriteFile(
                 self.0,
