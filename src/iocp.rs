@@ -297,22 +297,34 @@ mod tests {
     #[test]
     fn get() {
         let c = CompletionPort::new(1).unwrap();
-        c.post(CompletionStatus::new(1, 2, std::ptr::dangling_mut()))
-            .unwrap();
+        c.post(CompletionStatus::new(
+            1,
+            2,
+            std::ptr::NonNull::dangling().as_ptr(),
+        ))
+        .unwrap();
         let s = c.get(None).unwrap();
         assert_eq!(s.bytes_transferred(), 1);
         assert_eq!(s.token(), 2);
-        assert_eq!(s.overlapped(), std::ptr::dangling_mut());
+        assert_eq!(s.overlapped(), std::ptr::NonNull::dangling().as_ptr());
     }
 
     #[test]
     fn get_many() {
         let c = CompletionPort::new(1).unwrap();
 
-        c.post(CompletionStatus::new(1, 2, std::ptr::dangling_mut()))
-            .unwrap();
-        c.post(CompletionStatus::new(4, 5, std::ptr::dangling_mut()))
-            .unwrap();
+        c.post(CompletionStatus::new(
+            1,
+            2,
+            std::ptr::NonNull::dangling().as_ptr(),
+        ))
+        .unwrap();
+        c.post(CompletionStatus::new(
+            4,
+            5,
+            std::ptr::NonNull::dangling().as_ptr(),
+        ))
+        .unwrap();
 
         let mut s = vec![CompletionStatus::zero(); 4];
         {
@@ -320,10 +332,10 @@ mod tests {
             assert_eq!(s.len(), 2);
             assert_eq!(s[0].bytes_transferred(), 1);
             assert_eq!(s[0].token(), 2);
-            assert_eq!(s[0].overlapped(), std::ptr::dangling_mut());
+            assert_eq!(s[0].overlapped(), std::ptr::NonNull::dangling().as_ptr());
             assert_eq!(s[1].bytes_transferred(), 4);
             assert_eq!(s[1].token(), 5);
-            assert_eq!(s[1].overlapped(), std::ptr::dangling_mut());
+            assert_eq!(s[1].overlapped(), std::ptr::NonNull::dangling().as_ptr());
         }
         assert_eq!(s[2].bytes_transferred(), 0);
         assert_eq!(s[2].token(), 0);
