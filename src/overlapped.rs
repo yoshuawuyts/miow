@@ -47,7 +47,7 @@ impl Overlapped {
     /// `OVERLAPPED`, wrapping in the "rusty" wrapper for working with
     /// accessors.
     ///
-    /// # Unsafety
+    /// # Safety
     ///
     /// This function doesn't validate `ptr` nor the lifetime of the returned
     /// pointer at all, it's recommended to use this method with extreme

@@ -85,7 +85,7 @@ impl CompletionPort {
 
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
         assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
-        let ret = unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token as usize, 0) };
+        let ret = unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token, 0) };
         if ret == 0 {
             Err(io::Error::last_os_error())
         } else {
@@ -110,7 +110,7 @@ impl CompletionPort {
     pub fn get(&self, timeout: Option<Duration>) -> io::Result<CompletionStatus> {
         let mut bytes = 0;
         let mut token = 0;
-        let mut overlapped = 0 as *mut _;
+        let mut overlapped = std::ptr::null_mut();
         let timeout = crate::dur2ms(timeout);
         let ret = unsafe {
             GetQueuedCompletionStatus(
@@ -151,7 +151,7 @@ impl CompletionPort {
         );
         let mut removed = 0;
         let timeout = crate::dur2ms(timeout);
-        let len = cmp::min(list.len(), <u32>::max_value() as usize) as u32;
+        let len = cmp::min(list.len(), u32::MAX as usize) as u32;
         let ret = unsafe {
             GetQueuedCompletionStatusEx(
                 self.handle.raw(),
@@ -159,7 +159,7 @@ impl CompletionPort {
                 len,
                 &mut removed,
                 timeout,
-                FALSE as i32,
+                FALSE,
             )
         };
         match crate::cvt(ret) {
@@ -216,7 +216,7 @@ impl CompletionStatus {
         assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
         CompletionStatus(OVERLAPPED_ENTRY {
             dwNumberOfBytesTransferred: bytes,
-            lpCompletionKey: token as usize,
+            lpCompletionKey: token,
             lpOverlapped: overlapped as *mut _,
             Internal: 0,
         })
@@ -239,7 +239,7 @@ impl CompletionStatus {
     /// This function is useful when creating a stack buffer or vector of
     /// completion statuses to be passed to the `get_many` function.
     pub fn zero() -> CompletionStatus {
-        CompletionStatus::new(0, 0, 0 as *mut _)
+        CompletionStatus::new(0, 0, std::ptr::null_mut())
     }
 
     /// Returns the number of bytes that were transferred for the I/O operation
@@ -254,7 +254,7 @@ impl CompletionStatus {
     /// A completion key is a per-handle key that is specified when it is added
     /// to an I/O completion port via `add_handle` or `add_socket`.
     pub fn token(&self) -> usize {
-        self.0.lpCompletionKey as usize
+        self.0.lpCompletionKey
     }
 
     /// Returns a pointer to the `Overlapped` structure that was specified when
@@ -297,19 +297,22 @@ mod tests {
     #[test]
     fn get() {
         let c = CompletionPort::new(1).unwrap();
-        c.post(CompletionStatus::new(1, 2, 3 as *mut _)).unwrap();
+        c.post(CompletionStatus::new(1, 2, std::ptr::dangling_mut()))
+            .unwrap();
         let s = c.get(None).unwrap();
         assert_eq!(s.bytes_transferred(), 1);
         assert_eq!(s.token(), 2);
-        assert_eq!(s.overlapped(), 3 as *mut _);
+        assert_eq!(s.overlapped(), std::ptr::dangling_mut());
     }
 
     #[test]
     fn get_many() {
         let c = CompletionPort::new(1).unwrap();
 
-        c.post(CompletionStatus::new(1, 2, 3 as *mut _)).unwrap();
-        c.post(CompletionStatus::new(4, 5, 6 as *mut _)).unwrap();
+        c.post(CompletionStatus::new(1, 2, std::ptr::dangling_mut()))
+            .unwrap();
+        c.post(CompletionStatus::new(4, 5, std::ptr::dangling_mut()))
+            .unwrap();
 
         let mut s = vec![CompletionStatus::zero(); 4];
         {
@@ -317,13 +320,13 @@ mod tests {
             assert_eq!(s.len(), 2);
             assert_eq!(s[0].bytes_transferred(), 1);
             assert_eq!(s[0].token(), 2);
-            assert_eq!(s[0].overlapped(), 3 as *mut _);
+            assert_eq!(s[0].overlapped(), std::ptr::dangling_mut());
             assert_eq!(s[1].bytes_transferred(), 4);
             assert_eq!(s[1].token(), 5);
-            assert_eq!(s[1].overlapped(), 6 as *mut _);
+            assert_eq!(s[1].overlapped(), std::ptr::dangling_mut());
         }
         assert_eq!(s[2].bytes_transferred(), 0);
         assert_eq!(s[2].token(), 0);
-        assert_eq!(s[2].overlapped(), 0 as *mut _);
+        assert_eq!(s[2].overlapped(), std::ptr::null_mut());
     }
 }
