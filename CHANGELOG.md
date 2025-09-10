@@ -1,3 +1,17 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.1](https://github.com/yoshuawuyts/miow/compare/v0.6.0...v0.6.1) - 2025-09-10
+
+### Other
+
+- Upgrade `windows-sys` from 0.48 to 0.60-0.61.
+- Upgrade `socket2` from 0.5 to 0.6 (dev dependency only).
+
 ## [v0.6.0] - 2023-08-04
 ### Added
 - Add note about this crate being unmaintained.
