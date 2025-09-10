@@ -47,8 +47,10 @@ impl CompletionPort {
     /// allowed for threads associated with this port. Consult the Windows
     /// documentation for more information about this value.
     pub fn new(threads: u32) -> io::Result<CompletionPort> {
-        let ret = unsafe { CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, threads) };
-        if ret == 0 {
+        let ret = unsafe {
+            CreateIoCompletionPort(INVALID_HANDLE_VALUE, std::ptr::null_mut(), 0, threads)
+        };
+        if ret.is_null() {
             Err(io::Error::last_os_error())
         } else {
             Ok(CompletionPort {
@@ -86,7 +88,7 @@ impl CompletionPort {
     fn _add(&self, token: usize, handle: HANDLE) -> io::Result<()> {
         assert_eq!(mem::size_of_val(&token), mem::size_of::<usize>());
         let ret = unsafe { CreateIoCompletionPort(handle, self.handle.raw(), token, 0) };
-        if ret == 0 {
+        if ret.is_null() {
             Err(io::Error::last_os_error())
         } else {
             debug_assert_eq!(ret, self.handle.raw());
